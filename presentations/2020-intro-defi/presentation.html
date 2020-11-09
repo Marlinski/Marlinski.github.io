@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <head profile="http://www.w3.org/2005/10/profile">
+    <link rel="icon" 
+      type="image/svg" 
+      href="images/open-apis.svg">
+    <title>Introduction to Decentralized Finance (DeFi)</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Roboto);
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body {
+        
+        font-family: 'Roboto';
+      }
+
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+
+      .green {
+          color: #00aa81;
+      }
+      .red {
+          color: #e4623f;
+      }
+      .yellow {
+          color: #f4b731ff;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      
+      /* Header/Footer stuff */
+      div.my-header {
+          background: linear-gradient(45deg, #ffffff 50%, #01434f 50%);
+          position: fixed;
+          top: 0px;
+          left: 0px;
+          height: 30px;
+          width: 100%;
+          display: table;
+      }
+      div.my-footer {
+          background: linear-gradient(45deg, #00aa81 50%, #ffffff 50%);
+          position: absolute;
+          bottom: 0px;
+          left: 0px;
+          height: 30px;
+          width: 100%;
+          display: table;
+      }
+      div.hl {  
+          border-radius: 8px;
+          background: #dddddd;
+          padding: 20px;
+      }
+      
+      #header-left, #header-right, #footer-left, #footer-right {
+          display: table-cell;
+          width: 50%;
+          text-align: center;
+          vertical-align:middle;
+      }
+      #header-left {
+          padding-top:5px;
+          text-align: center;
+          font-size: 10pt;
+          vertical-align:middle;
+          
+      }
+      #header-right {
+          font-size: 10pt;
+          color: #ffffff;
+      }
+      #footer-left {
+          font-size: 10pt;
+          color: #ffffff;
+      }
+      #footer-right {
+          font-size: 10pt;
+          color: #01434f;
+      }
+      .remark-slide-number { font-size: 10pt; color: #01434f; opacity:1; bottom:8px;}
+
+      table {
+          border-collapse: collapse;
+          align: center;
+          margin-left: auto;
+          margin-right: auto;
+          width: 90%;
+      }
+      th, td {
+          padding: 5px;
+          border: 5px solid white;
+      }
+      th {
+        background-color: #aaaaaa;
+        align: center;
+        width:290px;
+      }
+      td {
+        background-color: #cccccc;
+        text-align: center;
+      }
+
+      #intro {
+          width: 90%;
+          height: 70%;
+          position: absolute;
+          top: 17%;
+          left: 20px;
+      }
+
+      .left-column50 {
+        width: 49%;
+        float: left;
+      }
+
+      .right-column50 {
+        width: 49%;
+        float: right;
+      }
+
+
+      .left-column50 {
+        width: 69%;
+        float: left;
+      }
+
+      .right-column50 {
+        width: 29%;
+        float: right;
+      }
+
+
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+            layout: true
+            <div class="my-header">
+                <div id="header-left"></div>
+                <div id="header-right">Introduction to Decentralized Finance (DeFi)</div>
+            </div>
+            <div class="my-footer">
+                <div id="footer-left">Lucien Loiseau <loiseau.lucien@gmail.com></div>
+                <div id="footer-right">November 5th, 2020</div>
+            </div>
+
+            ---
+
+            class: center, middle
+
+            <div id="intro"></div>
+            # Exploring .green[Blockchain] for Fun and Profit
+            ## An Introduction to .green[Decentralized Finance] (DeFi)
+
+            ---
+            
+            # .green[Lucien] Loiseau 
+            
+            * .green[PhD] in Computer Science 
+
+            * currently .green[CTO] @ Nodle (world's first incentivized crowdsource IoT network) 
+
+            * Focus on .green[Decentralized] Network and Security
+
+            * Passionate about .green[Blockchain] 
+
+            <img src="images/lucien-baby.jpg" width="30%" style="position:absolute; right:150px; bottom:150px;"/>
+
+
+            ---
+
+            # .green[Plan]
+
+            1. What Is .green[DeFi]
+
+            2. .green[Ethereum] Blockchain
+
+            3. Initial Coin Offering (.green[ICOs])
+
+            4. Asset-Backed Tokens and .green[StableCoins]
+            
+            5. .green[DEXes] (Decentralized Exchanges) and P2P markets
+
+            6. Decentralized .green[Lending] / Borrowing           
+
+            7. Conclusion
+
+            ---
+          
+            class: center, middle
+
+            # 1. What is .green[DeFi]
+
+            **DeFi** is an ecosystem of .green[decentralized] financial applications, fueled by .green[Smart-Contracts] hosted on a .green[blockchain], specifically .green[Ethereum].
+
+            ---
+
+            ## Not a BuzzWord
+
+            <div class="hl" style="margin-top:-25px;">
+            DeFi is a growing ecosystem of working protocols delivering value to several thousands of users and transacting the equivalent of hundreds of millions of dollars in digital assets, every day. 
+            </div>
+
+            .center[<img src="images/defi-product.png" width="75%"/>]
+            ---
+
+            ## Not a BuzzWord
+
+            <div class="hl" style="margin-top:-25px;">
+            DeFi is a growing ecosystem of working protocols delivering value to several thousands of users and transacting the equivalent of hundreds of millions of dollars in digital assets, every day. 
+            </div>
+
+            
+            .center[<a href="https://defipulse.com/" target="_blank"><img src="images/defi-pulse.png" width="70%"/></a>]
+
+            ---
+
+            # 2. The .green[Ethereum] Blockchain
+                        
+            * Ethereum is a public Blockchain. Its main interface is <a href="https://etherscan.io/" target="_blank">.green[Etherscan]</a>. 
+            
+            * .green[Smart Contracts] are self-executed contracts that enables end-to-end transactions, removing the need of many third parties such as brokers, escrow, lawyers or courts. (code is law!)
+
+            * All is needed to interact with Ethereum is a .green[wallet]
+
+            .center[<img src="images/metamask-ethereum.svg" width="40%"/>]
+
+            ---
+
+            # 3. Initial Coin Offering (.green[ICOs]) : Access Tokens
+
+            * An ICO is a DeFi instrument for .green[CrowdFunding]: A certain amount of token is issued and sold in exchange of cryptocurrency 
+
+            <br/><br/><br/>
+            .left-column70[<img src="images/access-tokens-4.svg" width="450px" style="float:center"/>]
+                        
+            ---
+
+
+            # 3. Initial Coin Offering (.green[ICOs]) : Access Tokens
+
+            * An ICO is a DeFi instrument for .green[CrowdFunding]: A certain amount of token is issued and sold in exchange of cryptocurrency 
+
+            <br/><br/><br/>
+            .left-column70[<img src="images/access-tokens-0.svg" width="450px" style="float:center"/>]
+                        
+            ---
+
+
+            # 3. Initial Coin Offering (.green[ICOs]) : Access Tokens
+
+            * An ICO is a DeFi instrument for .green[CrowdFunding]: A certain amount of token is issued and sold in exchange of cryptocurrency
+
+            * Buyers invest in a token often with the expectation of it being a future functional unit of currency (_speculative investment_)
+
+
+            .left-column70[<img src="images/access-tokens-0.svg" width="450px" style="float:center"/>]
+            .right-column30[<img src="images/access-tokens-3.svg" width="250px"style="float:right"/>]
+            
+            --
+
+            <div class="hl" style="margin-top:0px">
+            An ICO removes intermediaries such as venture capitalists, investment firm, banks, and stock exchanges.
+            </div>
+
+            ---
+
+            # 3. Initial Coin Offering (.green[ICOs])
+
+            .center[<img src="images/ico-bench-stats.png" />]
+
+            <br/>
+            .center[<img src="images/ico-bench-platforms.png" width="60%"/>]
+
+            .right[source: <a href="https://icobench.com/icos" target="_blank">https://icobench.com/</a>]
+            ---
+
+            # 4. .green[StableCoins] (Asset-Backed Tokens)
+
+            <div style="margin-top:-10px"></div>
+
+            * An Asset-Based Token is a form of .green[Digital Stock] 
+            * Each token represents an .green[ownership right] of the underlying asset
+            * Minting and Redeeming token done by the .green[issuer] (not trustless!)
+
+            .center[<img src="images/asset-backed-tokens.svg" width="75%"/>]
+
+            <a href="https://digix.global/" target="_blank">cache</a>, <a href="https://etherscan.io/token/0x4f3afec4e5a3f2a6a1a411def7d7dfe50ee057bf#balances" target="_blank">contract</a>
+
+            ---
+
+            # 4. .green[MakerDAO] and the Dai token
+
+            * The MakerDAO is a plateform that lets users take out a .green[loan] in __Dai__
+            * Dai supply is <a href="https://defipulse.com" target="_blank">.green[collaterized]</a> by other valuable crypto assets
+            * .green[Trustless!] Minting and Burning purely based on Smart-Contracts Interactions 
+            * The Dai token is a StableCoin .green[softly-pegged] to USD  (1 DAI = 1 USD)
+
+            .left-column50[<img src="images/dai-token.svg" width="300px" style="float:left"/>]
+            .right-column50[<img src="images/dai-chart.png" width="320px"style="float:right"/>]
+
+            ---
+
+            # 5. Decentralized .green[Exchanges] and P2P markets
+
+            <div class="hl">
+              Uniswap is a .green[Decentralized Exchange] that allows anyone to swap tokens
+            </div>
+
+            <br/>
+            .center[<a href="https://app.uniswap.org/#/swap"target="_blank"><img src="images/uniswap.png" width="50%"/></a>]
+
+            ---
+
+            # 5. Decentralized .green[Exchanges] and P2P markets
+
+            <div class="hl">
+              Uniswap is a .green[Decentralized Exchange] that allows anyone to swap tokens
+            </div>
+
+            .left-column50[<img src="images/uniswap-1.svg" width="300px" style="float:left"/>] 
+
+            .right-column50[<img src="images/uniswap-2.svg" width="300px"style="float:right"/>]
+
+            ---
+
+            # 5. Decentralized .green[Exchanges] and P2P markets
+
+            * ~2B$ to 3B$ liquidity provided
+            * Daily Trading Volume peaked ~ 1B$ (overtaking CoinBase), <a href="https://info.uniswap.org/home" target="_blank">current</a>
+            * Only 10 employees (coinbase 1000 employees)
+
+            <div class="hl">
+              On 16th of September, Uniswap team announced the UNI governance token. <br/>1 Billion UNI token distributed to over 50 000 addresses.
+            </div>
+
+            .center[<img src="images/uniswap-uni-allocation.png" width="60%"/>]
+
+            ---
+
+            # 6. Lending / Borrowing 
+
+            <div class="hl">
+              Compound Finance is a .green[Decentralized Lending] plateform that allows anyone to borrow tokens
+            </div>
+
+            .left-column50[<img src="images/compound-1.svg" width="300px" style="float:left"/>] 
+
+            .right-column50[<img src="images/compound-2.svg" width="300px"style="float:right"/>]
+
+            ---
+
+            # 6. Lending / Borrowing 
+
+            <div class="hl">
+              .center[about <a href="https://defipulse.com/" target="_blank">1.4B$</a> locked in compound finance]
+            </div>
+
+            <br/>
+            .center[<a href="https://app.compound.finance/" target="_blank"><img src="images/compound.png" width="80%"/></a>]
+            
+            ---
+
+            # 6. Conclusion
+
+            Traditional Finance  | Decentralized Finance
+            ------------- | -------------
+            .red[Lack] of unified digital identity <br/> .red[Registration] over and over | .green[Cryptographic] Identities <br/> .green[Non-Custodial] services
+
+            <br/>
+            <img src="images/kyc-traditional.png" width="30%" style="float: left; margin-left: 10%"/> 
+            <img src="images/ledger.jpg" width="25%" style="float: right; margin-right: 15%;"/>
+               
+            ---
+
+            # 6. Conclusion
+
+            Traditional Finance  | Decentralized Finance
+            ------------- | -------------
+            .red[Lack] of unified digital identity <br/> .red[Registration] over and over | .green[Cryptographic] Identities <br/> .green[Non-Custodial] services
+            .red[Opaque] and .red[vulnerable] data | .green[Transparent], .green[Non-repudiable]
+
+            <br/>
+            <img src="images/closed-apis.svg" width="40%" style="float: left; margin-left: 10%"/> 
+            <img src="images/open-apis.svg" width="40%" style="float: right; margin-right: 8%;"/>
+                        
+            ---
+
+            # 6. Conclusion
+
+            Traditional Finance  | Decentralized Finance
+            ------------- | -------------
+            .red[Lack] of unified digital identity <br/> .red[Registration] over and over | .green[Cryptographic] Identities <br/> .green[Non-Custodial] services
+            .red[Opaque] and .red[Vulnerable] data | .green[Transparent], .green[Non-repudiable]
+            APIs are .red[Closed] or .red[Non-standard]  | APIs are .green[Open], .green[Permissionless], .green[Composable] (Money LEGOs)
+            
+            <br/>
+            <img src="images/universal-adapter.jpg" width="30%" style="float: left; margin-left: 10%"/> 
+            <img src="images/money-lego.png" width="25%" style="float: right; margin-right: 15%;"/>
+                    
+
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create();
+    </script>
+  </body>
+</html>

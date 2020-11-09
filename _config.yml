@@ -1,0 +1,4 @@
+theme: jekyll-theme-minimal
+title: Lucien Loiseau
+logo: /static/avatar.jpeg
+social: <a href="https://github.com/Marlinski" target="_blank"><img src="/static/github.png"/></a> &nbsp; <a href="https://www.linkedin.com/in/llucien/" target="_blank"><img src="/static/linkedin.png"/></a> &nbsp; <a href="https://medium.com/@lloiseau" target="_blank"><img src="/static/medium.png"/></a> &nbsp; <a href="https://twitter.com/lucienloiseau" target="_blank"><img src="/static/twitter.png"/></a> &nbsp; <a href="mailto:loiseau.lucien@gmail.com"><img src="/static/email.png"/></a> &nbsp;
