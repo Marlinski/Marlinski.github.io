@@ -1,0 +1,65 @@
+{
+	"abi": [
+		{
+			"inputs": [],
+			"stateMutability": "nonpayable",
+			"type": "constructor"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "recipient",
+					"type": "address"
+				}
+			],
+			"name": "mintNFT",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "payable",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "mintParams",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "tokenPrice",
+					"type": "uint256"
+				},
+				{
+					"internalType": "address payable",
+					"name": "artistWallet",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "maxSupply",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "nft",
+			"outputs": [
+				{
+					"internalType": "contract NFTCollection",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		}
+	],
+    "address": "0x0d4eEaEA9F9662Ea628EFB94fFfDb07221D81318"
+}
