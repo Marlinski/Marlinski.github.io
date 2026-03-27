@@ -516,6 +516,22 @@ main p {
   display: block;
 }
 
+.key-read  { color: #4e9; font-style: normal; }
+.key-write { color: #e94; font-style: normal; }
+.sh-comment { color: #555; }
+.sh-cmd     { color: var(--fg); }
+
+pre.post-pre {
+  background: #111;
+  border: 1px solid var(--border);
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.8rem;
+  margin-bottom: 1.2rem;
+  color: var(--fg);
+  font-family: var(--font);
+}
+
 /* ── Footer ──────────────────────────────────── */
 
 footer {
