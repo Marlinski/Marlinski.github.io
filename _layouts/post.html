@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ page.title | default: site.title }}</title>
+  <title>{{ page.title }} — {{ site.title }}</title>
   <meta name="description" content="{{ page.description | default: site.description }}">
   <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
 </head>
@@ -30,7 +30,18 @@
     </header>
 
     <main>
-      {{ content }}
+      <article>
+        <div class="post-header">
+          <h2 class="post-title">{{ page.title }}</h2>
+          <time class="post-date">{{ page.date | date: "%Y-%m-%d" }}</time>
+        </div>
+        <div class="post-content">
+          {{ content }}
+        </div>
+      </article>
+      <div class="post-footer">
+        <a href="{{ '/blog' | relative_url }}">← back to blog</a>
+      </div>
     </main>
 
     <footer>

@@ -1,30 +1,538 @@
 ---
 ---
 
-@import "{{ site.theme }}";
-
-.nav a {
-    margin-right: 10px;
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.card {
-    float: left;
-    box-shadow: -8px 8px 8px 0 rgba(0,0,0,0.2);
-    transition: 0.3s;
-    width: 200px;
-    height: 270px;
-    margin:20px;
+:root {
+  --bg:      #0d0d0d;
+  --fg:      #d4d4d4;
+  --dim:     #555;
+  --accent:  #e8e8e8;
+  --border:  #2a2a2a;
+  --link:    #aaa;
+  --link-hover: #fff;
+  --font: "Courier New", Courier, monospace;
+  --max-width: 780px;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+#container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* ── Header ─────────────────────────────────── */
+
+header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+#identity {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+#avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  image-rendering: pixelated;
+}
+
+#identity h1 {
+  font-size: 1.1rem;
+  font-weight: normal;
+  letter-spacing: 0.05em;
+}
+
+#identity h1 a {
+  color: var(--accent);
+}
+
+#identity h1 a:hover {
+  text-decoration: none;
+}
+
+#tagline {
+  color: var(--dim);
+  font-size: 0.85rem;
+  margin-top: 0.2rem;
+}
+
+nav {
+  margin-bottom: 0.6rem;
+}
+
+nav a {
+  margin-right: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--dim);
+}
+
+nav a:hover {
+  color: var(--link-hover);
+  text-decoration: none;
+}
+
+#links {
+  font-size: 0.8rem;
+}
+
+#links a {
+  margin-right: 1.2rem;
+  color: var(--dim);
+}
+
+#links a::before {
+  content: "[ ";
+}
+
+#links a::after {
+  content: " ]";
+}
+
+#links a:hover {
+  color: var(--link-hover);
+  text-decoration: none;
+}
+
+/* ── Main content ────────────────────────────── */
+
+main h2 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--dim);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.3rem;
+  margin: 2rem 0 1rem;
+}
+
+main p {
+  margin-bottom: 1rem;
+  color: var(--fg);
+}
+
+/* ── Project aligned list ────────────────────── */
+
+.proj-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.proj-list > li {
+  display: grid;
+  grid-template-columns: 14ch 1fr auto;
+  align-items: baseline;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.proj-list > li:last-child {
+  border-bottom: none;
+}
+
+.proj-list > li::before {
+  display: none;
+}
+
+.proj-list .proj-gh {
+  color: var(--dim);
+  font-size: 0.8rem;
+  margin-left: 0.4rem;
+}
+
+.proj-list .proj-gh:hover {
+  color: var(--link-hover);
+}
+
+.proj-list .proj-title {
+  color: var(--accent);
+}
+
+.proj-list .proj-tags {
+  color: #444;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding-left: 1rem;
+}
+
+.proj-list .proj-desc {
+  color: var(--fg);
+}
+
+/* ── Square bullet list (projects, posts) ────── */
+
+.sq-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sq-list > li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.sq-list > li:last-child {
+  border-bottom: none;
+}
+
+/* entries without details */
+.sq-list > li:not(:has(details)) {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+
+.sq-list > li:not(:has(details))::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--dim);
+  flex-shrink: 0;
+  position: relative;
+  top: -1px;
+}
+
+.sq-list a {
+  color: var(--accent);
+}
+
+.sq-list a:hover {
+  color: #fff;
+}
+
+.sq-list .meta {
+  color: var(--dim);
+  font-size: 0.8rem;
+}
+
+/* ── Details/summary expand ──────────────────── */
+
+.entry {
+  display: block;
+}
+
+.entry summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  cursor: pointer;
+  list-style: none;
+  outline: none;
+}
+
+.entry summary::-webkit-details-marker { display: none; }
+
+.entry summary::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--dim);
+  flex-shrink: 0;
+  position: relative;
+  top: -1px;
+  transition: background 0.15s;
+}
+
+.entry[open] summary::before {
+  background: var(--dim);
+}
+
+.entry summary:hover::before {
+  border-color: var(--accent);
+}
+
+.entry summary .meta {
+  margin-left: auto;
+}
+
+.entry-files {
+  list-style: none;
+  margin: 0.5rem 0 0.3rem 1.4rem;
+  padding: 0;
+  border-left: 1px solid var(--border);
+  padding-left: 1rem;
+}
+
+.entry-files li {
+  padding: 0.2rem 0;
+  font-size: 0.85rem;
+}
+
+.entry-files a {
+  color: var(--link);
+  font-family: var(--font);
+}
+
+.entry-files a:hover {
+  color: var(--link-hover);
+}
+
+.file-desc {
+  color: var(--dim);
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+/* ── Blog index ──────────────────────────────── */
+
+.posts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.posts li {
+  display: flex;
+  align-items: baseline;
+  gap: 1.2rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.posts li:last-child {
+  border-bottom: none;
+}
+
+.posts li.empty {
+  color: var(--dim);
+  font-size: 0.85rem;
+}
+
+.posts time {
+  font-size: 0.8rem;
+  color: var(--dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.posts .post-tags {
+  margin-left: auto;
+}
+
+.tag {
+  font-size: 0.7rem;
+  color: var(--dim);
+  margin-left: 0.4rem;
+}
+
+.tag::before { content: "#"; }
+
+/* ── Post ────────────────────────────────────── */
+
+.post-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.post-title {
+  font-size: 1rem;
+  font-weight: normal;
+  color: var(--accent);
+  text-transform: none;
+  letter-spacing: 0;
+  border: none;
+  margin: 0 0 0.4rem;
+  padding: 0;
+}
+
+.post-date {
+  font-size: 0.8rem;
+  color: var(--dim);
+}
+
+.post-content p {
+  margin-bottom: 1.2rem;
+}
+
+.post-content h2, .post-content h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+  margin: 2rem 0 0.8rem;
+}
+
+.post-content pre {
+  background: #111;
+  border: 1px solid var(--border);
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.8rem;
+  margin-bottom: 1.2rem;
+}
+
+.post-content code {
+  font-family: var(--font);
+  font-size: 0.85em;
+  background: #111;
+  padding: 0.1em 0.3em;
+  border: 1px solid var(--border);
+}
+
+.post-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.post-content blockquote {
+  border-left: 2px solid var(--border);
+  padding-left: 1rem;
+  color: var(--dim);
+  margin: 1rem 0;
+}
+
+.post-content ul, .post-content ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.post-content img {
+  max-width: 100%;
+  display: block;
+  margin: 1.5rem auto;
+  border: 1px solid var(--border);
+}
+
+.post-footer {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+/* ── Twitter thread ─────────────────────────── */
+
+.thread-origin {
+  font-size: 0.75rem;
+  color: var(--dim);
+  margin-bottom: 2rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--border);
+  display: inline-block;
+}
+
+.thread-origin a {
+  color: var(--dim);
+}
+
+.thread-origin a:hover {
+  color: var(--link-hover);
+}
+
+.thread {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.thread-item {
+  display: flex;
+  gap: 0.9rem;
+  padding-bottom: 0.2rem;
+}
+
+.thread-gutter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 14px;
+}
+
+.thread-dot {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--dim);
+  flex-shrink: 0;
+  margin-top: 0.35rem;
+}
+
+.thread-line {
+  width: 1px;
+  background: var(--border);
+  flex-grow: 1;
+  margin-top: 4px;
+}
+
+.thread-item:last-child .thread-line {
+  display: none;
+}
+
+.thread-body {
+  padding-bottom: 1.6rem;
+  flex: 1;
+}
+
+.thread-body p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.thread-body p + p {
+  margin-top: 0.6rem;
+}
+
+.thread-media {
+  margin-top: 0.8rem;
+  border: 1px solid var(--border);
+  max-width: 100%;
+  display: block;
+}
+
+/* ── Footer ──────────────────────────────────── */
+
+footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--dim);
+}
+
+/* ── Responsive ──────────────────────────────── */
+
+@media (max-width: 520px) {
+  .projects li {
+    grid-template-columns: 1fr;
   }
-  
-  .card img{
-      width: 200px;
+  .project-tech {
+    display: none;
   }
-  
-  
-  .card:hover {
-    box-shadow: -8px 8px 16px 2px rgba(0,0,0,0.3);
-  }
-  
-  .container {
-    padding: 2px 16px;
-  }
+}
