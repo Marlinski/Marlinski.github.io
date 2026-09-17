@@ -3,6 +3,7 @@ layout: post
 title: "Open Sourcing our Substrate Client for Android (Kotlin)"
 date: 2020-11-09
 tags: [kotlin, blockchain, android, substrate]
+blurb: "Talking to a Polkadot chain from a phone, and why we wrote our own client."
 canonical: https://medium.com/nodle-io/open-sourcing-our-substrate-client-for-android-kotlin-5558be84c7fd
 ---
 

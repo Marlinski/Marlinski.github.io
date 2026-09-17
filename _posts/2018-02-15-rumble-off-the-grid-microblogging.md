@@ -3,6 +3,7 @@ layout: post
 title: "Rumble, or what happens when you delete the server"
 date: 2018-02-15
 tags: [android, p2p, dtn, networking, mesh]
+blurb: "Micro-blogging that spreads phone to phone. No towers, no accounts, no server."
 ---
 
 Every messaging app you have ever used works the same way: your phone talks to

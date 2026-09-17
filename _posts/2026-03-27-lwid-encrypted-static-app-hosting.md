@@ -3,6 +3,7 @@ layout: post
 title: "Building lwid, an encrypted pastebin for static sites"
 date: 2026-03-27
 tags: [ai, tools, crypto, web, cli]
+blurb: "Give it a directory, get a URL back. The key never leaves your machine."
 ---
 
 Around me, a bunch of non-technical colleagues have been vibecoding dashboards — small static HTML apps with some charts, maybe a table pulling from a CSV. They all hit the same wall: sharing the result. Email the HTML file? Fragile, can't update it. Push to GitHub Pages? Requires git literacy. Spin up a VPS? Overkill for a 200-line HTML file.

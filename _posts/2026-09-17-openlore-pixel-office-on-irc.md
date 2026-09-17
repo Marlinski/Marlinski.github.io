@@ -3,6 +3,7 @@ layout: post
 title: "Building OpenLore, a pixel office where every room is an IRC channel"
 date: 2026-09-17
 tags: [games, irc, ai, agents, go, web]
+blurb: "A top-down office you walk around in a browser tab, where walking into a room joins its IRC channel."
 ---
 
 I built [OpenLore](https://openlore.xyz): a top-down pixel office that runs

@@ -7,3 +7,6 @@ github_username: Marlinski
 linkedin_username: llucien
 twitter_username: lucienloiseau
 email: loiseau.lucien@gmail.com
+
+# One line under the tagline: what I'm building right now. Raw HTML, rendered as-is.
+now: 'building <a href="https://github.com/ovh/shai">SHAI</a> at OVHcloud — an AI coding agent that lives in your shell'

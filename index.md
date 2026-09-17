@@ -2,31 +2,142 @@
 layout: default
 ---
 
-Research engineer. Currently building [SHAI](https://github.com/ovh/shai) at OVHcloud — an AI coding agent that lives in your terminal.
-Working at the intersection of AI, blockchain, cryptography, and decentralized networks.
-International background: France, Singapore, US, Canada.
+I build things that run where you already are: a terminal, a browser tab, a phone with no signal.
+Research engineer, working across AI agents, cryptography, blockchain and decentralized networks —
+currently at OVHcloud.
+{: .intro}
 
-## recent posts
+France → Singapore → US → Canada.
+{: .intro-sub}
 
-<ul class="sq-list">
-{% for post in site.posts limit:6 %}
-  <li><a href="{{ post.url | relative_url }}">{{ post.title }}</a> <span class="meta">{{ post.date | date: "%Y-%m-%d" }}</span></li>
+{% assign active = site.data.projects | where: "status", "active" %}
+{% assign archived = site.data.projects | where: "status", "archived" %}
+{% assign featured = site.data.projects | where: "featured", true %}
+
+<div class="sec">
+  <span class="sec-mark"></span>
+  <h2>building now</h2>
+  <span class="sec-rule"></span>
+</div>
+
+<ul class="feat">
+{% for p in featured %}
+  <li>
+    <a class="feat-card" href="{{ p.url }}"{% if p.url contains '://' %} target="_blank"{% endif %}>
+      <div class="feat-shot">
+        {% if p.shot %}
+        <img src="{{ p.shot | relative_url }}" alt="{{ p.alt }}" loading="lazy">
+        {% elsif p.term %}
+        <div class="feat-term">{% for line in p.term %}<span class="t-{{ line.kind }}">{{ line.text }}</span>
+{% endfor %}</div>
+        {% endif %}
+      </div>
+      <div class="feat-body">
+        <span class="feat-name"><span class="dot"></span>{{ p.name }}</span>
+        <span class="feat-desc">{{ p.blurb | default: p.desc }}</span>
+        <span class="feat-tags">{{ p.tags | join: " #" | prepend: "#" }}</span>
+      </div>
+    </a>
+  </li>
 {% endfor %}
 </ul>
 
-## projects
+<div class="sec">
+  <span class="sec-mark"></span>
+  <h2>what i keep coming back to</h2>
+  <span class="sec-rule"></span>
+</div>
 
-<ul class="proj-list">
-  <li><span class="proj-title"><a href="https://github.com/ovh/shai">SHAI</a></span><span class="proj-desc">AI coding agent and pair-programming buddy that lives in the terminal.</span><span class="proj-tags">#ai #cli #rust</span></li>
-  <li><span class="proj-title"><a href="https://github.com/Marlinski/airc">AIRC</a></span><span class="proj-desc">IRC platform where AI agents and humans connect, discover capabilities, and collaborate.</span><span class="proj-tags">#ai #irc #rust</span></li>
-  <li><span class="proj-title"><a href="{% post_url 2026-09-17-openlore-pixel-office-on-irc %}">OpenLore</a> <a href="https://github.com/Marlinski/openlore" class="proj-gh">[gh]</a></span><span class="proj-desc">2D multiplayer pixel office where every room is a real IRC channel. Ships with a full world editor.</span><span class="proj-tags">#game #irc #agents</span></li>
-  <li><span class="proj-title"><a href="https://lookwhatidid.xyz">lwid</a> <a href="https://github.com/Marlinski/lwid" class="proj-gh">[gh]</a></span><span class="proj-desc">Encrypted, zero-knowledge app-sharing platform. Pastebin for small web apps, with client-side encryption.</span><span class="proj-tags">#crypto #web #cli</span></li>
-  <li><span class="proj-title"><a href="https://github.com/Marlinski/plan">plan</a></span><span class="proj-desc">Lightweight CLI task tracker for AI agents and humans. Persistent, cross-session, no server.</span><span class="proj-tags">#ai #cli #productivity</span></li>
-  <li><span class="proj-title"><a href="{% post_url 2018-02-15-rumble-off-the-grid-microblogging %}">Rumble</a> <a href="https://github.com/Marlinski/Rumble" class="proj-gh">[gh]</a></span><span class="proj-desc">Off-the-grid micro-blogging app. Think Twitter, but no internet required.</span><span class="proj-tags">#p2p #mobile #android</span></li>
-  <li><span class="proj-title"><a href="https://github.com/NodleCode/substrate-client-kotlin">substrate-rpc</a></span><span class="proj-desc">RPC client for Parity Substrate / Polkadot chains.</span><span class="proj-tags">#blockchain #polkadot #kotlin</span></li>
-  <li><span class="proj-title"><a href="https://github.com/Marlinski/Terra">Terra</a></span><span class="proj-desc">Lightweight extensible DTN Bundle Protocol library.</span><span class="proj-tags">#dtn #networking #java</span></li>
+<ul class="focus">
+{% for f in site.data.focus %}
+  <li>
+    <span class="focus-title">{{ f.title }}</span>
+    <span class="focus-desc">{{ f.desc }}<span class="focus-refs">{{ f.refs }}</span></span>
+  </li>
+{% endfor %}
 </ul>
 
-## elsewhere
+{%- comment -%}
+Tag cloud: every tag from _data/projects.yml plus every post tag, counted and
+ranked. Liquid has no group-by-count, so each tag is zero-padded into a
+"06|ai" string, the list is sorted as text, then split back apart.
+{%- endcomment -%}
+{%- assign all_tags = "" | split: "" -%}
+{%- for p in site.data.projects -%}{%- assign all_tags = all_tags | concat: p.tags -%}{%- endfor -%}
+{%- for post in site.posts -%}{%- assign all_tags = all_tags | concat: post.tags -%}{%- endfor -%}
+{%- assign uniq_tags = all_tags | uniq -%}
+{%- assign pairs = "" | split: "" -%}
+{%- for t in uniq_tags -%}
+  {%- assign n = 0 -%}
+  {%- for x in all_tags -%}{%- if x == t -%}{%- assign n = n | plus: 1 -%}{%- endif -%}{%- endfor -%}
+  {%- capture pair %}{{ n | prepend: "00" | slice: -2, 2 }}|{{ t }}{% endcapture -%}
+  {%- assign one = pair | split: "~~" -%}
+  {%- assign pairs = pairs | concat: one -%}
+{%- endfor -%}
+{%- assign pairs = pairs | sort | reverse -%}
 
-All projects on [GitHub](https://github.com/Marlinski).
+<div class="cloud">
+  <span class="cloud-label">tags</span>
+  {%- for pair in pairs limit: 12 -%}
+  {%- assign bits = pair | split: "|" -%}
+  <a class="chip" href="{{ '/blog' | relative_url }}#{{ bits[1] }}">#{{ bits[1] }}<span class="chip-n">{{ bits[0] | times: 1 }}</span></a>
+  {%- endfor -%}
+</div>
+
+<div class="sec">
+  <span class="sec-mark"></span>
+  <h2>all projects</h2>
+  <span class="sec-rule"></span>
+  <span class="sec-meta">{{ active.size }} active · {{ archived.size }} archived</span>
+</div>
+
+<ul class="proj-list">
+{% for p in active %}
+  {%- assign linked = site.posts | where_exp: "x", "x.path contains p.post" | first -%}
+  <li>
+    <span class="dot"></span>
+    <span class="proj-title"><a href="{{ p.url }}"{% if p.url contains '://' %} target="_blank"{% endif %}>{{ p.name }}</a>{% if p.gh %}<a href="{{ p.gh }}" class="proj-gh" target="_blank">[gh]</a>{% endif %}{% if linked %}<a href="{{ linked.url | relative_url }}" class="proj-gh">[post]</a>{% endif %}</span>
+    <span class="proj-desc">{{ p.desc }}</span>
+    <span class="proj-tags">{{ p.tags | join: " #" | prepend: "#" }}</span>
+  </li>
+{% endfor %}
+</ul>
+
+<div class="group-rule"><span>archive</span></div>
+
+<ul class="proj-list archived">
+{% for p in archived %}
+  {%- assign linked = site.posts | where_exp: "x", "x.path contains p.post" | first -%}
+  <li>
+    <span class="dot"></span>
+    <span class="proj-title"><a href="{{ p.url }}" target="_blank">{{ p.name }}</a>{% if linked %}<a href="{{ linked.url | relative_url }}" class="proj-gh">[post]</a>{% endif %}</span>
+    <span class="proj-desc">{{ p.desc }}{% if p.years %} <span class="proj-years">{{ p.years }}</span>{% endif %}</span>
+    <span class="proj-tags">{{ p.tags | join: " #" | prepend: "#" }}</span>
+  </li>
+{% endfor %}
+</ul>
+
+<div class="sec">
+  <span class="sec-mark"></span>
+  <h2>writing</h2>
+  <span class="sec-rule"></span>
+  <a class="sec-meta" href="{{ '/blog' | relative_url }}">all {{ site.posts.size }} →</a>
+</div>
+
+<ul class="sq-list posts-compact">
+{% for post in site.posts limit:5 %}
+  <li>
+    <time>{{ post.date | date: "%Y-%m" }}</time>
+    <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+    <span class="post-tags">{% for tag in post.tags limit:2 %}<span class="tag">{{ tag }}</span>{% endfor %}</span>
+  </li>
+{% endfor %}
+</ul>
+
+<div class="sec">
+  <span class="sec-mark"></span>
+  <h2>elsewhere</h2>
+  <span class="sec-rule"></span>
+</div>
+
+All projects on [GitHub](https://github.com/Marlinski). Slides and course material under [/public]({{ '/public' | relative_url }}).
