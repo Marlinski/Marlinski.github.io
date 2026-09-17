@@ -1,0 +1,87 @@
+# Projects shown on the homepage.
+#
+# status:   active | archived  — drives the marker (filled vs hollow) and the group
+# featured: true               — also gets a preview card at the top of the page
+# shot:     path to a 16:9 image under /images/projects/
+# term:     lines of a terminal session, used as the preview when there is no shot
+#
+# Order here is the order on the page.
+
+- name: SHAI
+  url: https://github.com/ovh/shai
+  desc: AI coding agent and pair-programming buddy that lives in your terminal.
+  blurb: An AI coding agent and pair-programming buddy that lives in your terminal.
+  tags: [ai, cli, rust]
+  status: active
+  featured: true
+  shot: /images/projects/shai.jpg
+  alt: SHAI running inside a terminal
+
+- name: AIRC
+  url: https://github.com/Marlinski/airc
+  desc: IRC server and client ecosystem where AI agents and humans share the same rooms.
+  blurb: An IRC server where agents and humans share the same rooms — the agent side reachable over MCP.
+  tags: [ai, irc, rust]
+  status: active
+  featured: true
+  term:
+    - { kind: cmd,   text: "$ nc airc.chat 6667" }
+    - { kind: out,   text: "NICK lucien" }
+    - { kind: out,   text: "USER lucien 0 * :Lucien" }
+    - { kind: greet, text: ":airc 001 lucien :Welcome to AIRC —" }
+    - { kind: greet, text: "  where AI agents and humans meet." }
+    - { kind: out,   text: "JOIN #office" }
+    - { kind: join,  text: ":agent!mcp@airc JOIN #office" }
+
+- name: OpenLore
+  url: https://openlore.xyz
+  post: 2026-09-17-openlore-pixel-office-on-irc.md
+  gh: https://github.com/Marlinski/openlore
+  desc: 2D multiplayer pixel office where every room is a real IRC channel. Ships with a full world editor.
+  blurb: A pixel office where every room is a real IRC channel. Humans and agents, same floor.
+  tags: [game, irc, agents]
+  status: active
+  featured: true
+  shot: /images/projects/openlore.jpg
+  alt: The OpenLore pixel office, seen from above
+
+- name: lwid
+  url: https://lookwhatidid.xyz
+  post: 2026-03-27-lwid-encrypted-static-app-hosting.md
+  gh: https://github.com/Marlinski/lwid
+  desc: Encrypted, zero-knowledge app-sharing platform. Pastebin for small web apps, with client-side encryption.
+  blurb: Encrypted pastebin for small web apps. The server never sees your bytes.
+  tags: [crypto, web, cli]
+  status: active
+  featured: true
+  shot: /images/projects/lwid.jpg
+  alt: The lwid web interface
+
+- name: plan
+  url: https://github.com/Marlinski/plan
+  desc: Lightweight CLI task tracker for AI agents and humans. Persistent, cross-session, no server.
+  tags: [ai, cli, tools]
+  status: active
+
+- name: Rumble
+  url: https://github.com/Marlinski/Rumble
+  post: 2018-02-15-rumble-off-the-grid-microblogging.md
+  gh: https://github.com/Marlinski/Rumble
+  desc: Off-the-grid micro-blogging app. Think Twitter, but no internet required.
+  years: 2015–18
+  tags: [p2p, mesh, android]
+  status: archived
+
+- name: substrate-rpc
+  url: https://github.com/NodleCode/substrate-client-kotlin
+  desc: RPC client for Parity Substrate / Polkadot chains.
+  years: "2020"
+  tags: [blockchain, polkadot, kotlin]
+  status: archived
+
+- name: Terra
+  url: https://github.com/Marlinski/Terra
+  desc: Lightweight extensible DTN Bundle Protocol library, presented at IETF.
+  years: "2018"
+  tags: [dtn, networking, java]
+  status: archived

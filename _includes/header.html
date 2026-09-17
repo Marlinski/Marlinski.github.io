@@ -1,0 +1,24 @@
+<header>
+  <div id="identity">
+    <img src="{{ site.logo | relative_url }}" alt="{{ site.title }}" id="avatar">
+    <div>
+      <h1><a href="{{ '/' | relative_url }}">{{ site.title }}</a></h1>
+      <p id="tagline">{{ site.description }}</p>
+      {% if site.now %}
+      <p id="now"><span class="now-label">now</span><span class="now-sep">·</span>{{ site.now }}<span class="caret">▌</span></p>
+      {% endif %}
+    </div>
+  </div>
+  <div id="bar">
+    <nav>
+      <a href="{{ '/' | relative_url }}"{% if page.url == '/' %} class="here"{% endif %}>~/</a>
+      <a href="{{ '/blog' | relative_url }}"{% if page.url contains '/blog' %} class="here"{% endif %}>blog</a>
+      <a href="{{ '/public' | relative_url }}"{% if page.url contains '/public' %} class="here"{% endif %}>public</a>
+    </nav>
+    <div id="links">
+      <a href="https://github.com/{{ site.github_username }}" target="_blank">github</a>
+      <a href="https://linkedin.com/in/{{ site.linkedin_username }}" target="_blank">linkedin</a>
+      <a href="https://twitter.com/{{ site.twitter_username }}" target="_blank">twitter</a>
+    </div>
+  </div>
+</header>

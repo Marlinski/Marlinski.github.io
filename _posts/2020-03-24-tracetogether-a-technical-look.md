@@ -3,6 +3,7 @@ layout: post
 title: "TraceTogether: A Technical Look"
 date: 2020-03-24
 tags: [android, privacy, ble, security, reverse-engineering]
+blurb: "Pulling apart Singapore's contact-tracing app three days after launch."
 canonical: https://medium.com/@lloiseau/tracetogether-a-technical-look-e48360d4a4a9
 ---
 

@@ -3,6 +3,7 @@ layout: post
 title: "WeChat Miniapps: Web 2.5?"
 date: 2023-07-26
 tags: [wechat, web3, blockchain, china, payments]
+blurb: "A thread on what the West keeps missing about superapps, rescued from X."
 canonical: https://x.com/lucienloiseau/status/1684258345815793664
 source: twitter
 ---

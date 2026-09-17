@@ -9,31 +9,16 @@
 </head>
 <body>
   <div id="container">
-    <header>
-      <div id="identity">
-        <img src="{{ site.logo | relative_url }}" alt="{{ site.title }}" id="avatar">
-        <div>
-          <h1><a href="{{ '/' | relative_url }}">{{ site.title }}</a></h1>
-          <p id="tagline">{{ site.description }}</p>
-        </div>
-      </div>
-      <nav>
-        <a href="{{ '/' | relative_url }}">~/</a>
-        <a href="{{ '/blog' | relative_url }}">blog</a>
-        <a href="{{ '/public' | relative_url }}">public</a>
-      </nav>
-      <div id="links">
-        <a href="https://github.com/{{ site.github_username }}" target="_blank">github</a>
-        <a href="https://linkedin.com/in/{{ site.linkedin_username }}" target="_blank">linkedin</a>
-        <a href="https://twitter.com/{{ site.twitter_username }}" target="_blank">twitter</a>
-      </div>
-    </header>
+    {% include header.html %}
 
     <main>
       <article>
         <div class="post-header">
           <h2 class="post-title">{{ page.title }}</h2>
           <time class="post-date">{{ page.date | date: "%Y-%m-%d" }}</time>
+          {% if page.tags.size > 0 %}
+          <span class="post-tags">{% for tag in page.tags %}<a class="tag" href="{{ '/blog' | relative_url }}#{{ tag }}">{{ tag }}</a>{% endfor %}</span>
+          {% endif %}
         </div>
         <div class="post-content">
           {{ content }}
@@ -46,6 +31,7 @@
 
     <footer>
       <span>marlinski.org</span>
+      <span class="foot-right">built with jekyll · <a href="https://github.com/Marlinski/Marlinski.github.io" target="_blank">source</a></span>
     </footer>
   </div>
 </body>

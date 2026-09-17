@@ -9,11 +9,15 @@
 
 :root {
   --bg:      #0d0d0d;
+  --panel:   #111;
   --fg:      #d4d4d4;
-  --dim:     #555;
+  --dim:     #808080;   /* was #555 — 3.4:1 on --bg, below the 4.5:1 floor */
+  --faint:   #4a4a4a;   /* decorative only: rules, brackets, never body text */
   --accent:  #e8e8e8;
+  --live:    #4ee99a;   /* the one colour on the site (same green as .key-read) */
   --border:  #2a2a2a;
-  --link:    #aaa;
+  --border-soft: #1e1e1e;
+  --link:    #a8a8a8;
   --link-hover: #fff;
   --font: "Courier New", Courier, monospace;
   --max-width: 780px;
@@ -87,14 +91,60 @@ header {
   margin-top: 0.2rem;
 }
 
+#now {
+  font-size: 0.85rem;
+  color: #9a9a9a;
+  margin-top: 0.4rem;
+}
+
+#now a {
+  color: var(--accent);
+}
+
+.now-label {
+  color: var(--live);
+}
+
+.now-sep {
+  color: var(--faint);
+  margin: 0 0.4rem;
+}
+
+.caret {
+  color: var(--live);
+  margin-left: 0.3rem;
+  animation: blink 1.1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret { animation: none; }
+}
+
+/* nav and social links share one row */
+#bar {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-top: 1.1rem;
+}
+
 nav {
-  margin-bottom: 0.6rem;
+  flex-grow: 1;
 }
 
 nav a {
   margin-right: 1.5rem;
   font-size: 0.85rem;
   color: var(--dim);
+}
+
+nav a.here {
+  color: var(--accent);
 }
 
 nav a:hover {
@@ -104,6 +154,7 @@ nav a:hover {
 
 #links {
   font-size: 0.8rem;
+  white-space: nowrap;
 }
 
 #links a {
@@ -151,10 +202,11 @@ main p {
 
 .proj-list > li {
   display: grid;
-  grid-template-columns: 14ch 1fr auto;
+  grid-template-columns: 13px 19ch 1fr auto;
   align-items: baseline;
+  gap: 0.7rem;
   padding: 0.4rem 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .proj-list > li:last-child {
@@ -180,10 +232,22 @@ main p {
 }
 
 .proj-list .proj-tags {
-  color: #444;
+  color: var(--dim);
   font-size: 0.8rem;
   white-space: nowrap;
   padding-left: 1rem;
+}
+
+.proj-list .proj-years {
+  color: var(--faint);
+}
+
+.proj-list.archived .proj-title a {
+  color: #b4b4b4;
+}
+
+.proj-list.archived .proj-desc {
+  color: #9a9a9a;
 }
 
 .proj-list .proj-desc {
@@ -316,14 +380,34 @@ main p {
 }
 
 .posts li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.post-line {
   display: flex;
   align-items: baseline;
   gap: 1.2rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border);
 }
 
-.posts li:last-child {
+.post-line a {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.post-line .post-tags {
+  flex-shrink: 0;
+}
+
+.post-blurb {
+  color: #8e8e8e;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  margin: 0.1rem 0 0 calc(10ch + 1.2rem);
+}
+
+.posts li:last-child,
+.posts li.last-shown {
   border-bottom: none;
 }
 
@@ -350,6 +434,11 @@ main p {
 }
 
 .tag::before { content: "#"; }
+
+a.tag:hover {
+  color: var(--live);
+  text-decoration: none;
+}
 
 /* ── Post ────────────────────────────────────── */
 
@@ -573,6 +662,374 @@ pre.post-pre {
   font-family: var(--font);
 }
 
+/* ── Intro ───────────────────────────────────── */
+
+.intro {
+  margin-bottom: 0.3rem;
+}
+
+.intro-sub {
+  color: var(--dim);
+  font-size: 0.85rem;
+}
+
+/* ── Section headers ─────────────────────────── */
+
+/* A marker square, the label, a rule that eats the remaining width, and an
+   optional count on the right. Replaces the plain bordered h2 on index pages;
+   post bodies keep the old `main h2` styling. */
+.sec {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 2.2rem 0 1rem;
+}
+
+.sec h2 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--dim);
+  font-weight: normal;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sec-mark {
+  width: 5px;
+  height: 5px;
+  background: var(--live);
+  flex-shrink: 0;
+}
+
+.sec-rule {
+  flex-grow: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.sec-meta {
+  font-size: 0.7rem;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+a.sec-meta:hover {
+  color: var(--link-hover);
+  text-decoration: none;
+}
+
+/* ── Featured project cards ──────────────────── */
+
+.feat {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.feat-card {
+  display: block;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--fg);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.feat-card:hover {
+  border-color: #4a4a4a;
+  background: #141414;
+  text-decoration: none;
+}
+
+.feat-shot {
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+  background: #0a0a0a;
+}
+
+/* Screenshots sit quiet until you reach for them: grey at rest, colour on
+   hover. Keeps a page full of previews from turning into a collage. */
+.feat-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(1) contrast(1.06) brightness(0.85);
+  opacity: 0.72;
+  transition: filter 0.25s, opacity 0.25s;
+}
+
+.feat-card:hover .feat-shot img {
+  filter: none;
+  opacity: 1;
+}
+
+/* Fallback preview for a project with no screenshot: a small session,
+   written as text in _data/projects.yml rather than faked as an image. */
+.feat-term {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.8rem 0.9rem;
+  font-size: 0.7rem;
+  line-height: 1.55;
+  color: #8e8e8e;
+  overflow: hidden;
+}
+
+.feat-term span {
+  display: block;
+  white-space: pre;
+}
+
+.feat-term .t-cmd   { color: var(--fg); }
+.feat-term .t-greet { color: var(--live); }
+.feat-term .t-join  { color: #e8a24e; }
+
+.feat-body {
+  display: block;
+  padding: 0.7rem 0.85rem 0.85rem;
+}
+
+.feat-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent);
+}
+
+.feat-desc {
+  display: block;
+  color: #b4b4b4;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  margin-top: 0.4rem;
+}
+
+.feat-tags {
+  display: block;
+  color: var(--dim);
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+/* Status marker: filled = active, hollow = archived. */
+.dot {
+  width: 6px;
+  height: 6px;
+  background: var(--live);
+  flex-shrink: 0;
+  display: inline-block;
+  position: relative;
+  top: -1px;
+}
+
+.archived .dot {
+  background: none;
+  border: 1px solid var(--faint);
+}
+
+/* ── Focus list ──────────────────────────────── */
+
+.focus {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.focus > li {
+  display: grid;
+  grid-template-columns: 21ch 1fr;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.focus > li:last-child {
+  border-bottom: none;
+}
+
+.focus-title {
+  color: var(--accent);
+}
+
+.focus-desc {
+  color: var(--link);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.focus-refs {
+  display: block;
+  color: #5f5f5f;
+  font-size: 0.8rem;
+}
+
+/* ── Tag cloud / filter chips ────────────────── */
+
+.cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.cloud-label {
+  color: var(--faint);
+  font-size: 0.8rem;
+  margin-right: 0.3rem;
+}
+
+.chip {
+  font-family: var(--font);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  padding: 0.1rem 0.5rem;
+  background: none;
+  border: 1px solid #262626;
+  color: var(--dim);
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+.chip:hover {
+  border-color: var(--live);
+  color: #cfcfcf;
+  text-decoration: none;
+}
+
+.chip.is-on {
+  background: var(--live);
+  border-color: var(--live);
+  color: var(--bg);
+}
+
+.chip-n {
+  color: var(--faint);
+  margin-left: 0.4rem;
+}
+
+.chip.is-on .chip-n,
+.chip:hover .chip-n {
+  color: inherit;
+  opacity: 0.7;
+}
+
+.linkish {
+  font-family: var(--font);
+  font-size: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--link);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.linkish:hover {
+  color: var(--link-hover);
+}
+
+.no-match {
+  color: var(--dim);
+  font-size: 0.85rem;
+}
+
+/* ── Row hover (projects, focus, posts) ──────── */
+
+.proj-list > li,
+.focus > li,
+.posts > li,
+.posts-compact > li {
+  position: relative;
+  transition: background 0.12s;
+}
+
+.proj-list > li::after,
+.focus > li::after,
+.posts > li::after,
+.posts-compact > li::after {
+  content: "";
+  position: absolute;
+  left: -0.75rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+  transition: background 0.12s;
+}
+
+.proj-list > li:hover,
+.focus > li:hover,
+.posts > li:hover,
+.posts-compact > li:hover {
+  background: #131313;
+}
+
+.proj-list > li:hover::after,
+.focus > li:hover::after,
+.posts > li:hover::after,
+.posts-compact > li:hover::after {
+  background: var(--live);
+}
+
+/* ── Archive divider ─────────────────────────── */
+
+.group-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.9rem 0 0.2rem;
+}
+
+.group-rule span {
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.group-rule::after {
+  content: "";
+  flex-grow: 1;
+  height: 1px;
+  background: #1a1a1a;
+}
+
+/* ── Compact post list (homepage) ────────────── */
+
+.posts-compact > li {
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.posts-compact > li:not(:has(details))::before {
+  display: none;
+}
+
+.posts-compact time {
+  color: var(--dim);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  width: 8ch;
+  flex-shrink: 0;
+}
+
+.posts-compact a {
+  flex-grow: 1;
+}
+
+.posts-compact .post-tags {
+  white-space: nowrap;
+}
+
 /* ── Footer ──────────────────────────────────── */
 
 footer {
@@ -581,15 +1038,89 @@ footer {
   border-top: 1px solid var(--border);
   font-size: 0.75rem;
   color: var(--dim);
+  display: flex;
+  gap: 1rem;
+}
+
+.foot-right {
+  margin-left: auto;
+  color: var(--faint);
+}
+
+.foot-right a {
+  color: var(--faint);
 }
 
 /* ── Responsive ──────────────────────────────── */
 
-@media (max-width: 520px) {
-  .projects li {
+/* Was keyed to .projects / .project-tech, which stopped existing when the
+   classes became .proj-list / .proj-tags — so none of this used to apply. */
+@media (max-width: 620px) {
+  .feat {
     grid-template-columns: 1fr;
+    gap: 0.6rem;
   }
-  .project-tech {
+
+  /* Stacking four 16:9 previews is a lot of scrolling: go thumbnail-left. */
+  .feat-card {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .feat-shot {
+    width: 104px;
+    flex-shrink: 0;
+    aspect-ratio: auto;
+    border-bottom: none;
+    border-right: 1px solid var(--border);
+  }
+
+  /* 104px is too narrow for a session; show the card without it. */
+  .feat-shot:has(.feat-term) {
     display: none;
+  }
+
+  .feat-body {
+    padding: 0.5rem 0.65rem;
+  }
+
+  .feat-desc {
+    margin-top: 0.25rem;
+  }
+
+  .feat-tags {
+    margin-top: 0.3rem;
+  }
+
+  .focus > li {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .proj-list > li {
+    grid-template-columns: 13px 1fr;
+    row-gap: 0.1rem;
+  }
+
+  .proj-list .proj-desc,
+  .proj-list .proj-tags {
+    grid-column: 2;
+    padding-left: 0;
+  }
+
+  .proj-list .proj-tags {
+    white-space: normal;
+  }
+
+  .post-blurb {
+    margin-left: 0;
+  }
+
+  #bar {
+    display: block;
+  }
+
+  #links {
+    margin-top: 0.5rem;
   }
 }
