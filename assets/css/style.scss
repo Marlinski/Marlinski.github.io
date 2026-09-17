@@ -516,6 +516,37 @@ main p {
   display: block;
 }
 
+/* The clips are phone-shot verticals — cap the height so one doesn't take
+   over the viewport, and keep the poster visible until the reader hits play. */
+video.thread-media {
+  max-height: 70vh;
+  background: #000;
+}
+
+/* The two tweets that carried more than one photo. */
+.thread-media-grid {
+  margin-top: 0.8rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+}
+
+/* contain, not cover: these mix 3:4 photos with 9:20 phone screenshots, and
+   cropping the screenshots to a common ratio cuts off the very UI the tweet
+   is pointing at. */
+.thread-media-grid .thread-media {
+  margin-top: 0;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: contain;
+  background: #000;
+}
+
+@media (max-width: 480px) {
+  .thread-media-grid { grid-template-columns: 1fr; }
+  .thread-media-grid .thread-media { aspect-ratio: auto; }
+}
+
 .key-read  { color: #4e9; font-style: normal; }
 .key-write { color: #e94; font-style: normal; }
 .sh-comment { color: #555; }

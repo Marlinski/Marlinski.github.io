@@ -31,6 +31,11 @@ source: twitter
     <div class="thread-body">
       <p>The first micropayment use case of WeChat is the ability to send money to your contacts 🧧</p>
       <p>This is done as part of a conversation. Transfer some money, the contact accepts it and it is done. The experience is as fluid as sending an image. Imagine that in WhatsApp!</p>
+      <video class="thread-media" controls loop muted playsinline
+             preload="none" poster="/images/posts/wechat-miniapps/send-money-poster.jpg"
+             aria-label="Sending money to a contact inside a WeChat conversation">
+        <source src="/images/posts/wechat-miniapps/send-money.mp4" type="video/mp4">
+      </video>
     </div>
   </li>
 
@@ -42,6 +47,11 @@ source: twitter
     <div class="thread-body">
       <p>There's also actual payment, similar to Visa. To pay you scan a merchant's QR code and transfer the amount 💸</p>
       <p>Another way to settle a payment is to generate a one-time QR code on your own phone and let the merchant scan it to claim the money himself (you'll have to confirm).</p>
+      <video class="thread-media" controls loop muted playsinline
+             preload="none" poster="/images/posts/wechat-miniapps/qr-payment-poster.jpg"
+             aria-label="Scanning a merchant's QR code to pay">
+        <source src="/images/posts/wechat-miniapps/qr-payment.mp4" type="video/mp4">
+      </video>
     </div>
   </li>
 
@@ -53,6 +63,11 @@ source: twitter
     <div class="thread-body">
       <p>This payment process is part of everyday life in China 🍜 Every shop, and I mean everyone, has its QR code plastered visibly! Paying is so convenient!</p>
       <p>But then, I discovered the whole miniapp universe 🤯...</p>
+      <video class="thread-media" controls loop muted playsinline
+             preload="none" poster="/images/posts/wechat-miniapps/everyday-payment-poster.jpg"
+             aria-label="QR codes on display in a shop">
+        <source src="/images/posts/wechat-miniapps/everyday-payment.mp4" type="video/mp4">
+      </video>
     </div>
   </li>
 
@@ -74,6 +89,12 @@ source: twitter
     </div>
     <div class="thread-body">
       <p>You can borrow a powerbank ⚡️ from any of those stations. You open the miniapp by flashing the QR code, click a button and it lets you pick a powerbank. It also holds some money temporarily and releases it when you put the charger back (in any other station), minus the service fee.</p>
+      <div class="thread-media-grid">
+        <img class="thread-media" src="/images/posts/wechat-miniapps/powerbank-1.jpg" alt="Powerbank rental stations (1 of 4)" loading="lazy">
+        <img class="thread-media" src="/images/posts/wechat-miniapps/powerbank-2.jpg" alt="Powerbank rental stations (2 of 4)" loading="lazy">
+        <img class="thread-media" src="/images/posts/wechat-miniapps/powerbank-3.jpg" alt="Powerbank rental stations (3 of 4)" loading="lazy">
+        <img class="thread-media" src="/images/posts/wechat-miniapps/powerbank-4.jpg" alt="Powerbank rental stations (4 of 4)" loading="lazy">
+      </div>
     </div>
   </li>
 
@@ -84,6 +105,10 @@ source: twitter
     </div>
     <div class="thread-body">
       <p>Going down a parking lot 🚗 your license plate is automatically flashed. To exit, you scan the parking miniapp which lets you input the license plate manually (just one time, it will remember for next time), pay the calculated amount (based on time) and the gate opens!</p>
+      <div class="thread-media-grid">
+        <img class="thread-media" src="/images/posts/wechat-miniapps/parking-1.jpg" alt="Parking QR code and the license plate miniapp (1 of 2)" loading="lazy">
+        <img class="thread-media" src="/images/posts/wechat-miniapps/parking-2.jpg" alt="Parking QR code and the license plate miniapp (2 of 2)" loading="lazy">
+      </div>
     </div>
   </li>
 
@@ -95,6 +120,11 @@ source: twitter
     <div class="thread-body">
       <p>A fun one now! There was this street singer with a QR code at her feet 🎤</p>
       <p>I thought it was just to transfer money — however the QR code opened a full featured miniapp that lets you pay a certain amount to pick the next song from the list for her to sing!</p>
+      <video class="thread-media" controls loop muted playsinline
+             preload="none" poster="/images/posts/wechat-miniapps/street-singer-poster.jpg"
+             aria-label="A street singer with a QR code at her feet">
+        <source src="/images/posts/wechat-miniapps/street-singer.mp4" type="video/mp4">
+      </video>
     </div>
   </li>
 
@@ -105,6 +135,11 @@ source: twitter
     </div>
     <div class="thread-body">
       <p>While visiting a buddhist temple, there was a dispensing machine to get free burning sticks. Of course the distribution was managed through a miniapp — it gives you 3 sticks and after dispensing it lets you choose an amount for your contribution to the temple 🙏</p>
+      <video class="thread-media" controls loop muted playsinline
+             preload="none" poster="/images/posts/wechat-miniapps/temple-poster.jpg"
+             aria-label="A dispensing machine for incense sticks at a buddhist temple">
+        <source src="/images/posts/wechat-miniapps/temple.mp4" type="video/mp4">
+      </video>
     </div>
   </li>
 
@@ -116,6 +151,11 @@ source: twitter
     <div class="thread-body">
       <p>Restaurant is a huge use-case 🍲 Often there's just the basic QR code payment.</p>
       <p>But sometimes you have a QR code per table that opens a miniapp you can use to order directly. No one to take your command — you order, it is served and automatically adds up to the bill.</p>
+      <video class="thread-media" controls loop muted playsinline
+             preload="none" poster="/images/posts/wechat-miniapps/restaurant-poster.jpg"
+             aria-label="Ordering from a QR code on a restaurant table">
+        <source src="/images/posts/wechat-miniapps/restaurant.mp4" type="video/mp4">
+      </video>
     </div>
   </li>
 
@@ -127,6 +167,11 @@ source: twitter
     <div class="thread-body">
       <p>The subway system also has its own miniapp that acts as your transit card 🚇</p>
       <p>You flash the one-time QR code generated by the miniapp to the gate optical reader. There's no "top-up" since the transit card is linked to the wallet already — you pay when you exit the subway.</p>
+      <video class="thread-media" controls loop muted playsinline
+             preload="none" poster="/images/posts/wechat-miniapps/subway-poster.jpg"
+             aria-label="Using the subway miniapp as a transit card">
+        <source src="/images/posts/wechat-miniapps/subway.mp4" type="video/mp4">
+      </video>
     </div>
   </li>
 
