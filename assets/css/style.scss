@@ -727,22 +727,21 @@ a.sec-meta:hover {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
 }
 
-.feat-card {
-  display: block;
+.feat > li {
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--border);
   background: var(--panel);
-  color: var(--fg);
   transition: border-color 0.15s, background 0.15s;
 }
 
-.feat-card:hover {
+.feat > li:hover {
   border-color: #4a4a4a;
   background: #141414;
-  text-decoration: none;
 }
 
 .feat-shot {
@@ -760,12 +759,12 @@ a.sec-meta:hover {
   height: 100%;
   object-fit: cover;
   display: block;
-  filter: grayscale(1) contrast(1.06) brightness(0.85);
-  opacity: 0.72;
+  filter: grayscale(1) contrast(1.06) brightness(0.72);
+  opacity: 0.68;
   transition: filter 0.25s, opacity 0.25s;
 }
 
-.feat-card:hover .feat-shot img {
+.feat > li:hover .feat-shot img {
   filter: none;
   opacity: 1;
 }
@@ -777,9 +776,9 @@ a.sec-meta:hover {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0.8rem 0.9rem;
+  padding: 0.6rem 0.7rem;
   font-size: 0.7rem;
-  line-height: 1.55;
+  line-height: 1.5;
   color: #8e8e8e;
   overflow: hidden;
 }
@@ -789,35 +788,75 @@ a.sec-meta:hover {
   white-space: pre;
 }
 
-.feat-term .t-cmd   { color: var(--fg); }
-.feat-term .t-greet { color: var(--live); }
-.feat-term .t-join  { color: #e8a24e; }
+.feat-term .t-cmd  { color: var(--fg); }
+.feat-term .t-key  { color: var(--live); }
+.feat-term .t-alt  { color: #e8a24e; }
+.feat-term .t-note { color: #5f5f5f; }
 
 .feat-body {
-  display: block;
-  padding: 0.7rem 0.85rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 0.6rem 0.75rem 0.7rem;
 }
 
 .feat-name {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.5rem;
+}
+
+.feat-name a {
   color: var(--accent);
 }
 
 .feat-desc {
   display: block;
   color: #b4b4b4;
-  font-size: 0.85rem;
-  line-height: 1.55;
-  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin-top: 0.3rem;
+  flex-grow: 1;
+}
+
+/* tags left, [gh]/[post] right, pinned to the bottom of every card so the
+   row of cards lines up however long the blurbs run */
+.feat-foot {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
 }
 
 .feat-tags {
-  display: block;
   color: var(--dim);
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.feat-links {
+  white-space: nowrap;
+  font-size: 0.75rem;
+}
+
+.feat-links a {
+  color: var(--faint);
+  margin-left: 0.3rem;
+}
+
+.feat-links a:hover {
+  color: var(--link-hover);
+}
+
+/* Archived: hollow marker, dimmer title, preview stays grey until hover. */
+.feat > li.archived .feat-name a {
+  color: #b4b4b4;
+}
+
+.feat > li.archived .proj-years {
+  color: var(--faint);
+  font-size: 0.75rem;
 }
 
 /* Status marker: filled = active, hollow = archived. */
@@ -836,43 +875,17 @@ a.sec-meta:hover {
   border: 1px solid var(--faint);
 }
 
-/* ── Focus list ──────────────────────────────── */
-
-.focus {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.focus > li {
-  display: grid;
-  grid-template-columns: 21ch 1fr;
-  gap: 1rem;
-  padding: 0.55rem 0;
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.focus > li:last-child {
-  border-bottom: none;
-}
-
-.focus-title {
-  color: var(--accent);
-}
-
-.focus-desc {
-  color: var(--link);
-  font-size: 0.85rem;
-  line-height: 1.6;
-}
-
-.focus-refs {
-  display: block;
-  color: #5f5f5f;
-  font-size: 0.8rem;
+.feat .dot {
+  position: relative;
+  top: 0;
 }
 
 /* ── Tag cloud / filter chips ────────────────── */
+
+.cloud-top {
+  margin: -0.5rem 0 1.6rem;
+  gap: 0.35rem;
+}
 
 .cloud {
   display: flex;
@@ -946,7 +959,6 @@ a.sec-meta:hover {
 /* ── Row hover (projects, focus, posts) ──────── */
 
 .proj-list > li,
-.focus > li,
 .posts > li,
 .posts-compact > li {
   position: relative;
@@ -954,7 +966,6 @@ a.sec-meta:hover {
 }
 
 .proj-list > li::after,
-.focus > li::after,
 .posts > li::after,
 .posts-compact > li::after {
   content: "";
@@ -968,14 +979,12 @@ a.sec-meta:hover {
 }
 
 .proj-list > li:hover,
-.focus > li:hover,
 .posts > li:hover,
 .posts-compact > li:hover {
   background: #131313;
 }
 
 .proj-list > li:hover::after,
-.focus > li:hover::after,
 .posts > li:hover::after,
 .posts-compact > li:hover::after {
   background: var(--live);
@@ -1055,15 +1064,21 @@ footer {
 
 /* Was keyed to .projects / .project-tech, which stopped existing when the
    classes became .proj-list / .proj-tags — so none of this used to apply. */
+@media (max-width: 760px) {
+  .feat {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 620px) {
   .feat {
     grid-template-columns: 1fr;
     gap: 0.6rem;
   }
 
-  /* Stacking four 16:9 previews is a lot of scrolling: go thumbnail-left. */
-  .feat-card {
-    display: flex;
+  /* Stacking eight 16:9 previews is a lot of scrolling: go thumbnail-left. */
+  .feat > li {
+    flex-direction: row;
     align-items: stretch;
   }
 
@@ -1075,13 +1090,35 @@ footer {
     border-right: 1px solid var(--border);
   }
 
-  /* 104px is too narrow for a session; show the card without it. */
-  .feat-shot:has(.feat-term) {
+  /* A session needs width to stay legible, so terminal cards keep the
+     stacked layout on a phone instead of squeezing into 104px. */
+  .feat > li:has(.feat-term) {
+    flex-direction: column;
+  }
+
+  .feat > li:has(.feat-term) .feat-shot {
+    width: auto;
+    aspect-ratio: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* The title needs the full width here; tags stay on the blog index. */
+  .posts-compact .post-tags {
+    display: none;
+  }
+
+  /* Keep the cloud to a few rows on a narrow screen. */
+  .cloud-top a:nth-child(n+11) {
     display: none;
   }
 
   .feat-body {
     padding: 0.5rem 0.65rem;
+  }
+
+  .feat-shot {
+    border-right: 1px solid var(--border);
   }
 
   .feat-desc {
@@ -1090,11 +1127,6 @@ footer {
 
   .feat-tags {
     margin-top: 0.3rem;
-  }
-
-  .focus > li {
-    grid-template-columns: 1fr;
-    gap: 0;
   }
 
   .proj-list > li {
