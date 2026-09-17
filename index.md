@@ -9,7 +9,7 @@ International background: France, Singapore, US, Canada.
 ## recent posts
 
 <ul class="sq-list">
-{% for post in site.posts limit:3 %}
+{% for post in site.posts limit:6 %}
   <li><a href="{{ post.url | relative_url }}">{{ post.title }}</a> <span class="meta">{{ post.date | date: "%Y-%m-%d" }}</span></li>
 {% endfor %}
 </ul>
@@ -22,7 +22,7 @@ International background: France, Singapore, US, Canada.
   <li><span class="proj-title"><a href="{% post_url 2026-09-17-openlore-pixel-office-on-irc %}">OpenLore</a> <a href="https://github.com/Marlinski/openlore" class="proj-gh">[gh]</a></span><span class="proj-desc">2D multiplayer pixel office where every room is a real IRC channel. Ships with a full world editor.</span><span class="proj-tags">#game #irc #agents</span></li>
   <li><span class="proj-title"><a href="https://lookwhatidid.xyz">lwid</a> <a href="https://github.com/Marlinski/lwid" class="proj-gh">[gh]</a></span><span class="proj-desc">Encrypted, zero-knowledge app-sharing platform. Pastebin for small web apps, with client-side encryption.</span><span class="proj-tags">#crypto #web #cli</span></li>
   <li><span class="proj-title"><a href="https://github.com/Marlinski/plan">plan</a></span><span class="proj-desc">Lightweight CLI task tracker for AI agents and humans. Persistent, cross-session, no server.</span><span class="proj-tags">#ai #cli #productivity</span></li>
-  <li><span class="proj-title"><a href="https://github.com/Marlinski/Rumble">Rumble</a></span><span class="proj-desc">Off-the-grid micro-blogging app. Think Twitter, but no internet required.</span><span class="proj-tags">#p2p #mobile #android</span></li>
+  <li><span class="proj-title"><a href="{% post_url 2018-02-15-rumble-off-the-grid-microblogging %}">Rumble</a> <a href="https://github.com/Marlinski/Rumble" class="proj-gh">[gh]</a></span><span class="proj-desc">Off-the-grid micro-blogging app. Think Twitter, but no internet required.</span><span class="proj-tags">#p2p #mobile #android</span></li>
   <li><span class="proj-title"><a href="https://github.com/NodleCode/substrate-client-kotlin">substrate-rpc</a></span><span class="proj-desc">RPC client for Parity Substrate / Polkadot chains.</span><span class="proj-tags">#blockchain #polkadot #kotlin</span></li>
   <li><span class="proj-title"><a href="https://github.com/Marlinski/Terra">Terra</a></span><span class="proj-desc">Lightweight extensible DTN Bundle Protocol library.</span><span class="proj-tags">#dtn #networking #java</span></li>
 </ul>
