@@ -33,18 +33,15 @@ Research engineer, working across AI agents, cryptography, blockchain and decent
 currently at OVHcloud.
 {: .intro}
 
-France → Singapore → US → Canada.
-{: .intro-sub}
-
 <div class="sec">
   <span class="sec-mark"></span>
   <h2>writing</h2>
   <span class="sec-rule"></span>
-  <a class="sec-meta" href="{{ '/blog' | relative_url }}">all {{ site.posts.size }} →</a>
+  <a class="sec-meta" href="{{ '/blog' | relative_url }}">{% if site.posts.size > 6 %}all {{ site.posts.size }} →{% else %}blog →{% endif %}</a>
 </div>
 
 <ul class="sq-list posts-compact">
-{% for post in site.posts limit:5 %}
+{% for post in site.posts limit:6 %}
   <li>
     <time>{{ post.date | date: "%Y-%m" }}</time>
     <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
@@ -65,8 +62,10 @@ France → Singapore → US → Canada.
 <ul class="feat">
 {% for p in site.data.projects %}
   {%- assign linked = site.posts | where_exp: "x", "x.path contains p.post" | first -%}
+  {%- comment -%}No `url` means the write-up is the main link, and [gh] carries the code.{%- endcomment -%}
+  {%- if p.url -%}{%- assign main = p.url -%}{%- else -%}{%- assign main = linked.url | relative_url -%}{%- endif -%}
   <li class="{{ p.status }}">
-    <a class="feat-shot" href="{{ p.url }}"{% if p.url contains '://' %} target="_blank"{% endif %} tabindex="-1" aria-hidden="true">
+    <a class="feat-shot" href="{{ main }}"{% if main contains '://' %} target="_blank"{% endif %} tabindex="-1" aria-hidden="true">
       {%- if p.shot %}<img src="{{ p.shot | relative_url }}" alt="" loading="lazy">
       {%- elsif p.term %}<span class="feat-term">{% for line in p.term %}<span class="t-{{ line.kind }}">{{ line.text }}</span>
 {% endfor %}</span>{% endif %}
@@ -74,13 +73,13 @@ France → Singapore → US → Canada.
     <div class="feat-body">
       <span class="feat-name">
         <span class="dot"></span>
-        <a href="{{ p.url }}"{% if p.url contains '://' %} target="_blank"{% endif %}>{{ p.name }}</a>
+        <a href="{{ main }}"{% if main contains '://' %} target="_blank"{% endif %}>{{ p.name }}</a>
         {%- if p.years %}<span class="proj-years">{{ p.years }}</span>{% endif -%}
       </span>
       <span class="feat-desc">{{ p.blurb }}</span>
       <span class="feat-foot">
         <span class="feat-tags">{{ p.tags | join: " #" | prepend: "#" }}</span>
-        <span class="feat-links">{% if p.gh %}<a href="{{ p.gh }}" target="_blank">[gh]</a>{% endif %}{% if linked %}<a href="{{ linked.url | relative_url }}">[post]</a>{% endif %}</span>
+        <span class="feat-links">{% if p.gh %}<a href="{{ p.gh }}" target="_blank">[gh]</a>{% endif %}{% if linked and p.url %}<a href="{{ linked.url | relative_url }}">[post]</a>{% endif %}</span>
       </span>
     </div>
   </li>

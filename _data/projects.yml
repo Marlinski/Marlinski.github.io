@@ -59,8 +59,8 @@
     - { kind: note, text: "# .todo/ = markdown + TOML" }
 
 - name: Rumble
-  url: https://github.com/Marlinski/Rumble
   post: 2018-02-15-rumble-off-the-grid-microblogging.md
+  gh: https://github.com/Marlinski/Rumble
   blurb: Off-the-grid micro-blogging. Twitter, minus the internet.
   years: 2015–18
   tags: [p2p, mesh, android]
