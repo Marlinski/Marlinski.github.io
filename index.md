@@ -50,13 +50,14 @@ currently at OVHcloud.
 {% endfor %}
 </ul>
 
-{%- assign live = site.data.projects | where: "status", "active" -%}
+{%- assign shelved = site.data.projects | where: "status", "archived" -%}
+{%- assign moving = site.data.projects.size | minus: shelved.size -%}
 
 <div class="sec">
   <span class="sec-mark"></span>
   <h2>projects</h2>
   <span class="sec-rule"></span>
-  <span class="sec-meta">{{ live.size }} of {{ site.data.projects.size }} still moving</span>
+  <span class="sec-meta">{{ moving }} of {{ site.data.projects.size }} still moving</span>
 </div>
 
 <ul class="feat">
@@ -72,7 +73,7 @@ currently at OVHcloud.
     </a>
     <div class="feat-body">
       <span class="feat-name">
-        <span class="dot"></span>
+        {% if p.status %}<span class="dot"></span>{% endif %}
         <a href="{{ main }}"{% if main contains '://' %} target="_blank"{% endif %}>{{ p.name }}</a>
         {%- if p.years %}<span class="proj-years">{{ p.years }}</span>{% endif -%}
       </span>

@@ -1,12 +1,23 @@
 # Projects shown on the homepage — one list, newest work first.
 #
-# status: active | archived   — drives the marker (filled green vs hollow)
+# status: active | archived   — drives the marker (filled green vs hollow).
+#         Omit it entirely for no marker at all.
 # shot:   a 16:9 image under /images/projects/
 # term:   a short session, used as the preview when there is no usable shot.
 #         Lines are real commands from the project's own README, not mock-ups.
 #         kind: cmd (bright) · out (dim) · key (green) · alt (amber) · note (faint)
 #
 # Keep term lines under ~34 characters — the card is narrow.
+
+- name: lwid
+  url: https://lookwhatidid.xyz
+  post: 2026-03-27-lwid-encrypted-static-app-hosting.md
+  gh: https://github.com/Marlinski/lwid
+  blurb: Encrypted pastebin for small web apps. The server never sees your bytes.
+  tags: [crypto, web, cli]
+  status: active
+  shot: /images/projects/lwid.jpg
+  alt: The lwid web interface
 
 - name: SHAI
   url: https://github.com/ovh/shai
@@ -35,21 +46,10 @@
   shot: /images/projects/openlore.jpg
   alt: The OpenLore pixel office, seen from above
 
-- name: lwid
-  url: https://lookwhatidid.xyz
-  post: 2026-03-27-lwid-encrypted-static-app-hosting.md
-  gh: https://github.com/Marlinski/lwid
-  blurb: Encrypted pastebin for small web apps. The server never sees your bytes.
-  tags: [crypto, web, cli]
-  status: active
-  shot: /images/projects/lwid.jpg
-  alt: The lwid web interface
-
 - name: plan
   url: https://github.com/Marlinski/plan
   blurb: CLI task tracker for agents and humans. Persistent, cross-session, no server.
   tags: [ai, cli, tools]
-  status: active
   term:
     - { kind: cmd,  text: "$ plan todo add \"fix login bug\"" }
     - { kind: cmd,  text: "$ plan todo backlog" }
