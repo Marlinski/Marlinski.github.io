@@ -429,6 +429,16 @@ main p {
   border: 1px solid var(--border);
 }
 
+/* Phone screenshots are 9:16 — at full column width one fills the screen and
+   pushes the prose apart, so show them at roughly handset size.
+   Keyed off the path rather than a class so posts can stay pure Markdown:
+   anything under images/posts/<post>/phone/ is treated as a handset capture.
+   (A raw <img class> would work in the built site but breaks image previews
+   in a Markdown editor, which is where these posts get written.) */
+.post-content img[src*="/phone/"] {
+  max-width: 300px;
+}
+
 .post-footer {
   margin-top: 2.5rem;
   padding-top: 1rem;
