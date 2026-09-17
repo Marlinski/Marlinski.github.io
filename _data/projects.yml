@@ -85,3 +85,16 @@
   status: archived
   shot: /images/projects/terra.jpg
   alt: The Terra repository on GitHub
+
+- name: wasmux
+  url: https://github.com/Marlinski/wasmux
+  blurb: A POSIX process sandbox inside your own WebAssembly component. Real BusyBox, real pipes, no way out.
+  tags: [wasm, rust, ai]
+  status: active
+  term:
+    - { kind: cmd,  text: "$ wasmux-cli -c \\" }
+    - { kind: cmd,  text: "    'seq 1 5 | paste -sd, -'" }
+    - { kind: out,  text: "1,2,3,4,5" }
+    - { kind: cmd,  text: "$ wasmux-cli --programs" }
+    - { kind: key,  text: "busybox 1.37 · 135 applets" }
+    - { kind: key,  text: "jq 1.8 · no network syscall" }
