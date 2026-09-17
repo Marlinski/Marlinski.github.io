@@ -28,10 +28,11 @@ ranked. Liquid has no group-by-count, so each tag is zero-padded into a
   {%- endfor -%}
 </div>
 
-I build things that run where you already are: a terminal, a browser tab, a phone with no signal.
 Research engineer, working across AI agents, cryptography, blockchain and decentralized networks —
 currently at OVHcloud.
-{: .intro}
+
+I am always interested in technology that pushes the boundaries of what networks, devices, and people
+can do together — whether that's offline-first mobile apps, agentic systems, or cryptographic protocols.
 
 <div class="sec">
   <span class="sec-mark"></span>
