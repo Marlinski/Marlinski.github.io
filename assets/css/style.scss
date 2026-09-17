@@ -689,17 +689,18 @@ pre.post-pre {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: var(--dim);
+  color: #9a9a9a;
   font-weight: normal;
   border: none;
   margin: 0;
   padding: 0;
 }
 
+/* A rule stub, not a square: green is reserved for project status. */
 .sec-mark {
-  width: 5px;
-  height: 5px;
-  background: var(--live);
+  width: 22px;
+  height: 1px;
+  background: var(--border);
   flex-shrink: 0;
 }
 
@@ -739,7 +740,8 @@ a.sec-meta:hover {
   transition: border-color 0.15s, background 0.15s;
 }
 
-.feat > li:hover {
+.feat > li:hover,
+.feat > li:focus-within {
   border-color: #4a4a4a;
   background: #141414;
 }
@@ -764,7 +766,8 @@ a.sec-meta:hover {
   transition: filter 0.25s, opacity 0.25s;
 }
 
-.feat > li:hover .feat-shot img {
+.feat > li:hover .feat-shot img,
+.feat > li:focus-within .feat-shot img {
   filter: none;
   opacity: 1;
 }
@@ -883,7 +886,7 @@ a.sec-meta:hover {
 /* ── Tag cloud / filter chips ────────────────── */
 
 .cloud-top {
-  margin: -0.5rem 0 1.6rem;
+  margin: 0 0 2.6rem;
   gap: 0.35rem;
 }
 

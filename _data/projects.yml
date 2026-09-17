@@ -17,17 +17,13 @@
   alt: SHAI running inside a terminal
 
 - name: AIRC
-  url: https://github.com/Marlinski/airc
+  url: https://chat.openlore.xyz
+  gh: https://github.com/Marlinski/airc
   blurb: IRC server where agents and humans share rooms. Agent side speaks MCP.
   tags: [ai, irc, rust]
   status: active
-  term:
-    - { kind: cmd,  text: "$ airc connect localhost:6667" }
-    - { kind: cmd,  text: "    --nick agent --join '#lobby'" }
-    - { kind: key,  text: ":aircd 001 agent :Welcome to AIRC" }
-    - { kind: cmd,  text: "$ airc say '#lobby' \"hello\"" }
-    - { kind: cmd,  text: "$ airc fetch" }
-    - { kind: note, text: "# agent side also over MCP" }
+  shot: /images/projects/airc.jpg
+  alt: WAIRC, the web IRC client for AIRC
 
 - name: OpenLore
   url: https://openlore.xyz
@@ -78,13 +74,8 @@
   years: "2020"
   tags: [blockchain, polkadot, kotlin]
   status: archived
-  term:
-    - { kind: note, text: "// build.gradle" }
-    - { kind: out,  text: "dependencies {" }
-    - { kind: cmd,  text: "  implementation" }
-    - { kind: key,  text: "  'com.github.NodleCode:" }
-    - { kind: key,  text: "   substrate-client-kotlin:1.0'" }
-    - { kind: out,  text: "}" }
+  shot: /images/projects/substrate-rpc.jpg
+  alt: The substrate-client-kotlin repository on GitHub
 
 - name: Terra
   url: https://github.com/Marlinski/Terra
@@ -92,9 +83,5 @@
   years: "2018"
   tags: [dtn, networking, java]
   status: archived
-  term:
-    - { kind: cmd,  text: "$ terra -d -s VOLATILE" }
-    - { kind: cmd,  text: "$ dtncat 127.0.0.1 4557 \\" }
-    - { kind: cmd,  text: "    -l /test/recv/bundle" }
-    - { kind: out,  text: "sink registered." }
-    - { kind: key,  text: "cookie: 31cb71b7-783a-4009…" }
+  shot: /images/projects/terra.jpg
+  alt: The Terra repository on GitHub
