@@ -4,11 +4,10 @@
 #         idle     — filled grey square, finished and still works
 #         archived — hollow grey square, not maintained
 # shot:   a 16:9 image under /images/projects/
-# term:   a short session, used as the preview when there is no usable shot.
-#         Lines are real commands from the project's own README, not mock-ups.
-#         kind: cmd (bright) · out (dim) · key (green) · alt (amber) · note (faint)
 #
-# Keep term lines under ~34 characters — the card is narrow.
+# Every project needs a shot, so the cards stay identical in structure at every
+# width. For a CLI with nothing to screenshot, the preview is a rendered
+# terminal session (plan, wasmux) using real commands from its own README.
 
 - name: lwid
   url: https://lookwhatidid.xyz
@@ -60,13 +59,8 @@
   blurb: CLI task tracker for agents and humans. Persistent, cross-session, no server.
   tags: [ai, cli, tools]
   status: idle
-  term:
-    - { kind: cmd,  text: "$ plan todo add \"fix login bug\"" }
-    - { kind: cmd,  text: "$ plan todo backlog" }
-    - { kind: out,  text: "  1  fix login bug      open" }
-    - { kind: out,  text: "  2  wire up the parser  open" }
-    - { kind: cmd,  text: "$ plan todo pick 1" }
-    - { kind: note, text: "# .todo/ = markdown + TOML" }
+  shot: /images/projects/plan.jpg
+  alt: A plan session in a terminal
 
 - name: Rumble
   post: 2018-02-15-rumble-off-the-grid-microblogging.md
@@ -101,10 +95,14 @@
   blurb: A POSIX process sandbox inside your own WebAssembly component. Real BusyBox, real pipes, no way out.
   tags: [wasm, rust, ai]
   status: active
-  term:
-    - { kind: cmd,  text: "$ wasmux-cli -c \\" }
-    - { kind: cmd,  text: "    'seq 1 5 | paste -sd, -'" }
-    - { kind: out,  text: "1,2,3,4,5" }
-    - { kind: cmd,  text: "$ wasmux-cli --programs" }
-    - { kind: key,  text: "busybox 1.37 · 135 applets" }
-    - { kind: key,  text: "jq 1.8 · no network syscall" }
+  shot: /images/projects/wasmux.jpg
+  alt: A wasmux-cli session in a terminal
+
+- name: Symbiosis
+  url: https://symbiosis.metapixel.art
+  blurb: Generative art that draws itself from its own NFT history on chain, and morphs as that ledger grows.
+  years: 2021–24
+  tags: [art, nft, ethereum]
+  status: idle
+  shot: /images/projects/symbiosis.jpg
+  alt: Three Symbiosis pieces in the gallery

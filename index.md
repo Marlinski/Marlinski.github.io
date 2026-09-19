@@ -67,9 +67,7 @@ can do together — whether that's offline-first mobile apps, agentic systems, o
   {%- if p.url -%}{%- assign main = p.url -%}{%- else -%}{%- assign main = linked.url | relative_url -%}{%- endif -%}
   <li class="{{ p.status }}">
     <a class="feat-shot" href="{{ main }}"{% if main contains '://' %} target="_blank"{% endif %} tabindex="-1" aria-hidden="true">
-      {%- if p.shot %}<img src="{{ p.shot | relative_url }}" alt="" loading="lazy">
-      {%- elsif p.term %}<span class="feat-term">{% for line in p.term %}<span class="t-{{ line.kind }}">{{ line.text }}</span>
-{% endfor %}</span>{% endif %}
+      <img src="{{ p.shot | relative_url }}" alt="" loading="lazy">
     </a>
     <div class="feat-body">
       <span class="feat-name">

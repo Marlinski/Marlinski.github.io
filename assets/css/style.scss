@@ -761,30 +761,6 @@ a.sec-meta:hover {
   opacity: 1;
 }
 
-/* Fallback preview for a project with no screenshot: a small session,
-   written as text in _data/projects.yml rather than faked as an image. */
-.feat-term {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0.6rem 0.7rem;
-  font-size: 0.7rem;
-  line-height: 1.5;
-  color: #8e8e8e;
-  overflow: hidden;
-}
-
-.feat-term span {
-  display: block;
-  white-space: pre;
-}
-
-.feat-term .t-cmd  { color: var(--fg); }
-.feat-term .t-key  { color: var(--live); }
-.feat-term .t-alt  { color: #e8a24e; }
-.feat-term .t-note { color: #5f5f5f; }
-
 .feat-body {
   display: flex;
   flex-direction: column;
@@ -1085,19 +1061,6 @@ footer {
     aspect-ratio: auto;
     border-bottom: none;
     border-right: 1px solid var(--border);
-  }
-
-  /* A session needs width to stay legible, so terminal cards keep the
-     stacked layout on a phone instead of squeezing into 104px. */
-  .feat > li:has(.feat-term) {
-    flex-direction: column;
-  }
-
-  .feat > li:has(.feat-term) .feat-shot {
-    width: auto;
-    aspect-ratio: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
   }
 
   /* The title needs the full width here; tags stay on the blog index. */
