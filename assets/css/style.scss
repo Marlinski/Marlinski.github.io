@@ -1055,10 +1055,14 @@ footer {
     align-items: stretch;
   }
 
+  /* Keep the box at the shots' own 16:9. Letting it stretch to the card's
+     height made object-fit: cover crop away everything but a narrow middle
+     strip, which shreds a terminal preview into fragments of words. */
   .feat-shot {
-    width: 104px;
+    width: 120px;
     flex-shrink: 0;
-    aspect-ratio: auto;
+    align-self: center;
+    aspect-ratio: 16 / 9;
     border-bottom: none;
     border-right: 1px solid var(--border);
   }
