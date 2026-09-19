@@ -22,8 +22,8 @@
 
 - name: Groow
   url: https://github.com/Marlinski/Groow
-  blurb: A small mind that learns by changing its own weights. Every night what it practised is merged into the base.
-  tags: [ai, agents, rust]
+  blurb: A recursive self-improving agent that can grow on its own 🌱
+  tags: [ai, agents, rust, python]
   status: active
   shot: /images/projects/groow.jpg
   alt: Groow's anatomy — the pixel creature with its organs labelled
