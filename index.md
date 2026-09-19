@@ -51,14 +51,13 @@ can do together — whether that's offline-first mobile apps, agentic systems, o
 {% endfor %}
 </ul>
 
-{%- assign shelved = site.data.projects | where: "status", "archived" -%}
-{%- assign moving = site.data.projects.size | minus: shelved.size -%}
+{%- assign moving = site.data.projects | where: "status", "active" -%}
 
 <div class="sec">
   <span class="sec-mark"></span>
   <h2>projects</h2>
   <span class="sec-rule"></span>
-  <span class="sec-meta">{{ moving }} of {{ site.data.projects.size }} still moving</span>
+  <span class="sec-meta">{{ moving.size }} of {{ site.data.projects.size }} still moving</span>
 </div>
 
 <ul class="feat">

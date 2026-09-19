@@ -1,7 +1,8 @@
 # Projects shown on the homepage — one list, newest work first.
 #
-# status: active | archived   — drives the marker (filled green vs hollow).
-#         Omit it entirely for no marker at all.
+# status: active   — filled green square, still moving
+#         idle     — filled grey square, finished and still works
+#         archived — hollow grey square, not maintained
 # shot:   a 16:9 image under /images/projects/
 # term:   a short session, used as the preview when there is no usable shot.
 #         Lines are real commands from the project's own README, not mock-ups.
@@ -18,6 +19,14 @@
   status: active
   shot: /images/projects/lwid.jpg
   alt: The lwid web interface
+
+- name: Groow
+  url: https://github.com/Marlinski/Groow
+  blurb: A small mind that learns by changing its own weights. Every night what it practised is merged into the base.
+  tags: [ai, agents, rust]
+  status: active
+  shot: /images/projects/groow.jpg
+  alt: Groow's anatomy — the pixel creature with its organs labelled
 
 - name: SHAI
   url: https://github.com/ovh/shai
@@ -50,6 +59,7 @@
   url: https://github.com/Marlinski/plan
   blurb: CLI task tracker for agents and humans. Persistent, cross-session, no server.
   tags: [ai, cli, tools]
+  status: idle
   term:
     - { kind: cmd,  text: "$ plan todo add \"fix login bug\"" }
     - { kind: cmd,  text: "$ plan todo backlog" }
