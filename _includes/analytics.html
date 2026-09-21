@@ -2,18 +2,21 @@
 Umami, self-hosted on sysiphe at stats.marlinski.org (sysiphe/umami/deploy).
 No cookies and no personal data, so no consent banner is required.
 
-Umami's script does not skip localhost the way GoatCounter's did, and the
-collector does NOT validate hostname against the website's configured domain —
-/api/send records whatever hostname it is given. The production guard below is
-therefore the only thing keeping `jekyll serve` out of the stats, not a
-belt-and-braces extra.
+Driven by `umami:` in _config.yml. Remove that block, or blank website_id, and
+this renders nothing at all — the site then behaves exactly as it did before
+analytics existed. GitHub Pages gives no environment variables, so config is
+the equivalent of the UMAMI_WEBSITE_ID env var the containerised sites use.
+
+The production guard is load-bearing, not a spare: Umami's collector does NOT
+validate hostname against the website's configured domain. /api/send records
+whatever hostname it is handed, so a local build would otherwise count.
 
 Project cards carry data-umami-event, which the script reports as a named
 event, so "which project did they click" lands in Events rather than in the
 page list.
 {%- endcomment -%}
-{%- if jekyll.environment == "production" -%}
+{%- if site.umami.website_id and jekyll.environment == "production" -%}
 <script defer
-        src="https://stats.marlinski.org/script.js"
-        data-website-id="3cf1e2f6-719d-4080-83a4-456998cc0452"></script>
+        src="{{ site.umami.script_url | default: 'https://stats.marlinski.org/script.js' }}"
+        data-website-id="{{ site.umami.website_id }}"></script>
 {%- endif -%}

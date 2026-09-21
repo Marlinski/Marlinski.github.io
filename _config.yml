@@ -10,3 +10,9 @@ email: loiseau.lucien@gmail.com
 
 # One line under the tagline: what I'm building right now. Raw HTML, rendered as-is.
 now: 'building <a href="https://github.com/ovh/shai">SHAI</a> at OVHcloud — an AI coding agent that lives in your shell'
+
+# Analytics (self-hosted Umami on sysiphe). Blank the website_id or delete this
+# block and no script is emitted at all.
+umami:
+  script_url: https://stats.marlinski.org/script.js
+  website_id: 3cf1e2f6-719d-4080-83a4-456998cc0452
