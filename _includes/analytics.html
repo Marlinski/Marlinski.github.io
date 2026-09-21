@@ -18,5 +18,6 @@ page list.
 {%- if site.umami.website_id and jekyll.environment == "production" -%}
 <script defer
         src="{{ site.umami.script_url | default: 'https://stats.marlinski.org/script.js' }}"
-        data-website-id="{{ site.umami.website_id }}"></script>
+        data-website-id="{{ site.umami.website_id }}"
+        data-exclude-hash="true"></script>
 {%- endif -%}
