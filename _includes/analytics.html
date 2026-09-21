@@ -1,0 +1,18 @@
+{%- comment -%}
+Umami, self-hosted on sysiphe at stats.marlinski.org (sysiphe/umami/deploy).
+No cookies and no personal data, so no consent banner is required.
+
+Umami's script does not skip localhost by itself the way GoatCounter's did, and
+it only counts hits whose hostname matches the website's configured domain
+(marlinski.org), so `jekyll serve` is ignored on the server side. The guard
+below keeps it out of the local build entirely regardless.
+
+Project cards carry data-umami-event, which the script reports as a named
+event, so "which project did they click" lands in Events rather than in the
+page list.
+{%- endcomment -%}
+{%- if jekyll.environment == "production" -%}
+<script defer
+        src="https://stats.marlinski.org/script.js"
+        data-website-id="3cf1e2f6-719d-4080-83a4-456998cc0452"></script>
+{%- endif -%}

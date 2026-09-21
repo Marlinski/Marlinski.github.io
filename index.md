@@ -66,19 +66,19 @@ can do together — whether that's offline-first mobile apps, agentic systems, o
   {%- comment -%}No `url` means the write-up is the main link, and [gh] carries the code.{%- endcomment -%}
   {%- if p.url -%}{%- assign main = p.url -%}{%- else -%}{%- assign main = linked.url | relative_url -%}{%- endif -%}
   <li class="{{ p.status }}">
-    <a class="feat-shot" href="{{ main }}"{% if main contains '://' %} target="_blank"{% endif %} tabindex="-1" aria-hidden="true">
+    <a class="feat-shot" href="{{ main }}"{% if main contains '://' %} target="_blank"{% endif %} tabindex="-1" aria-hidden="true" data-umami-event="project/{{ p.name | downcase }}">
       <img src="{{ p.shot | relative_url }}" alt="" loading="lazy">
     </a>
     <div class="feat-body">
       <span class="feat-name">
         {% if p.status %}<span class="dot"></span>{% endif %}
-        <a href="{{ main }}"{% if main contains '://' %} target="_blank"{% endif %}>{{ p.name }}</a>
+        <a href="{{ main }}"{% if main contains '://' %} target="_blank"{% endif %} data-umami-event="project/{{ p.name | downcase }}">{{ p.name }}</a>
         {%- if p.years %}<span class="proj-years">{{ p.years }}</span>{% endif -%}
       </span>
       <span class="feat-desc">{{ p.blurb }}</span>
       <span class="feat-foot">
         <span class="feat-tags">{{ p.tags | join: " #" | prepend: "#" }}</span>
-        <span class="feat-links">{% if p.gh %}<a href="{{ p.gh }}" target="_blank">[gh]</a>{% endif %}{% if linked and p.url %}<a href="{{ linked.url | relative_url }}">[post]</a>{% endif %}</span>
+        <span class="feat-links">{% if p.gh %}<a href="{{ p.gh }}" target="_blank" data-umami-event="gh/{{ p.name | downcase }}">[gh]</a>{% endif %}{% if linked and p.url %}<a href="{{ linked.url | relative_url }}">[post]</a>{% endif %}</span>
       </span>
     </div>
   </li>
