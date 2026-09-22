@@ -9,6 +9,7 @@
 mod app;
 mod cmd;
 mod feed;
+mod proxy;
 mod screen;
 mod store;
 mod web;
@@ -91,11 +92,53 @@ async fn main() -> anyhow::Result<()> {
         .unwrap_or(8080);
     tokio::spawn(web::serve(http_port));
 
+    // Set when the router in front of this pod speaks PROXY protocol. Without
+    // it every visitor's address is the router's own, which is worth recording
+    // exactly never.
+    let proxied = std::env::var("MINITEL_PROXY_PROTOCOL")
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+
     let mut server = Server { cache, store, admin_key: admin_key.map(Arc::new) };
     let socket = TcpListener::bind(("0.0.0.0", port)).await?;
-    eprintln!("minitel: listening on 0.0.0.0:{port}, feed {feed_url}");
-    server.run_on_socket(config, &socket).await?;
-    Ok(())
+    eprintln!(
+        "minitel: listening on 0.0.0.0:{port}, feed {feed_url}{}",
+        if proxied { ", behind PROXY protocol" } else { "" }
+    );
+
+    // Hand-rolled accept loop rather than run_on_socket, because the PROXY
+    // header has to come off the stream before russh sees it.
+    loop {
+        let (mut stream, addr) = match socket.accept().await {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("minitel: accept failed: {e}");
+                continue;
+            }
+        };
+        let config = config.clone();
+        let handler = {
+            let peer = if proxied { None } else { Some(addr) };
+            server.new_client(peer)
+        };
+        tokio::spawn(async move {
+            let mut handler = handler;
+            if proxied {
+                match proxy::read_header(&mut stream).await {
+                    Ok(peer) => handler.peer = peer,
+                    Err(e) => {
+                        eprintln!("minitel: PROXY header from {addr}: {e}");
+                        return;
+                    }
+                }
+            }
+            if let Err(e) = russh::server::run_stream(config, stream, handler).await {
+                if !benign(&e) {
+                    eprintln!("minitel: session error: {e}");
+                }
+            }
+        });
+    }
 }
 
 /// Fallback when MINITEL_HOST_KEY_PEM is not set: keep a key on disk. Either
@@ -138,6 +181,19 @@ fn parse_admin_key(line: &str) -> Option<russh::keys::ssh_key::PublicKey> {
     }
 }
 
+/// A connection that ends by going away. The health probes open a socket and
+/// drop it on a timer, and clients close mid-paint all the time; neither is
+/// worth a line in the log.
+fn benign(e: &russh::Error) -> bool {
+    let msg = format!("{e}");
+    msg.contains("EOF")
+        || msg.contains("early eof")
+        || msg.contains("Disconnected")
+        || msg.contains("reset by peer")
+        || msg.contains("Broken pipe")
+        || msg.contains("Connection closed")
+}
+
 #[derive(Clone)]
 struct Server {
     cache: Arc<FeedCache>,
@@ -147,8 +203,9 @@ struct Server {
 
 impl russh::server::Server for Server {
     type Handler = Client;
-    fn new_client(&mut self, _: Option<std::net::SocketAddr>) -> Client {
+    fn new_client(&mut self, peer: Option<std::net::SocketAddr>) -> Client {
         Client {
+            peer,
             cache: self.cache.clone(),
             store: self.store.clone(),
             admin_key: self.admin_key.clone(),
@@ -164,15 +221,15 @@ impl russh::server::Server for Server {
         }
     }
     fn handle_session_error(&mut self, error: russh::Error) {
-        // Clients hanging up mid-paint is the normal way a session ends.
-        let msg = format!("{error}");
-        if !msg.contains("EOF") && !msg.contains("early eof") {
-            eprintln!("minitel: session error: {msg}");
+        if !benign(&error) {
+            eprintln!("minitel: session error: {error}");
         }
     }
 }
 
 struct Client {
+    /// Where the visitor is connecting from, once the router has told us.
+    peer: Option<std::net::SocketAddr>,
     cache: Arc<FeedCache>,
     store: Store,
     admin_key: Option<Arc<russh::keys::ssh_key::PublicKey>>,
@@ -297,7 +354,8 @@ impl Client {
         if let Some(body) = send {
             let who = self.user.lock().await.clone();
             let key = self.pubkey.lock().await.clone();
-            if let Err(e) = self.store.add(who, email, key, body).await {
+            let ip = self.peer.map(|a| a.ip().to_string()).unwrap_or_default();
+            if let Err(e) = self.store.add(who, email, key, ip, body).await {
                 eprintln!("minitel: could not save message: {e}");
             }
         }
@@ -328,12 +386,22 @@ impl Client {
 impl Handler for Client {
     type Error = russh::Error;
 
+    /// One line per visitor who gets as far as opening a session. Logged here
+    /// rather than on accept, because the probes that keep this pod alive open
+    /// a TCP connection every few seconds and never say anything.
     async fn channel_open_session(
         &mut self,
         _channel: Channel<Msg>,
         reply: russh::server::ChannelOpenHandle,
         _session: &mut Session,
     ) -> Result<(), Self::Error> {
+        let who = self.user.lock().await.clone();
+        println!(
+            "minitel: session from {} as {}{}",
+            self.peer.map(|a| a.ip().to_string()).unwrap_or_else(|| "unknown".into()),
+            if who.is_empty() { "-" } else { &who },
+            if self.admin.load(Ordering::SeqCst) { " (owner)" } else { "" }
+        );
         reply.accept().await;
         Ok(())
     }

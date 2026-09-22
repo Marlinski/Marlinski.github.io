@@ -17,6 +17,9 @@ pub struct Message {
     /// The public key the sender authenticated with, if any. Not identity, but
     /// it does tell two messages apart and links repeat visitors.
     pub pubkey: String,
+    /// Where the message was sent from. Empty when the router did not say,
+    /// which is every message sent before this was wired up.
+    pub ip: String,
     pub body: String,
     pub at: String,
     pub read: bool,
@@ -47,6 +50,10 @@ impl Store {
                  read   INTEGER NOT NULL DEFAULT 0
              );",
         )?;
+        // Added after the table already existed on the volume; the error when
+        // the column is already there is the expected outcome on every start
+        // but the first.
+        let _ = conn.execute("ALTER TABLE messages ADD COLUMN ip TEXT NOT NULL DEFAULT ''", []);
         Ok(Store { conn: Arc::new(Mutex::new(conn)) })
     }
 
@@ -55,15 +62,16 @@ impl Store {
         who: String,
         email: String,
         pubkey: String,
+        ip: String,
         body: String,
     ) -> anyhow::Result<()> {
         let conn = self.conn.clone();
         tokio::task::spawn_blocking(move || -> anyhow::Result<()> {
             let c = conn.lock().unwrap();
             c.execute(
-                "INSERT INTO messages (who, email, pubkey, body, at)
-                 VALUES (?1, ?2, ?3, ?4, datetime('now'))",
-                params![who, email, pubkey, body],
+                "INSERT INTO messages (who, email, pubkey, ip, body, at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, datetime('now'))",
+                params![who, email, pubkey, ip, body],
             )?;
             Ok(())
         })
@@ -90,7 +98,7 @@ impl Store {
                 Err(_) => return Vec::new(),
             };
             let mut stmt = match c.prepare(
-                "SELECT id, who, email, pubkey, body, at, read FROM messages
+                "SELECT id, who, email, pubkey, ip, body, at, read FROM messages
                  ORDER BY read ASC, id DESC LIMIT 500",
             ) {
                 Ok(s) => s,
@@ -102,9 +110,10 @@ impl Store {
                     who: r.get(1)?,
                     email: r.get(2)?,
                     pubkey: r.get(3)?,
-                    body: r.get(4)?,
-                    at: r.get(5)?,
-                    read: r.get::<_, i64>(6)? != 0,
+                    ip: r.get(4)?,
+                    body: r.get(5)?,
+                    at: r.get(6)?,
+                    read: r.get::<_, i64>(7)? != 0,
                 })
             });
             match rows {

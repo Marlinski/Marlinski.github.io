@@ -302,6 +302,12 @@ impl App {
                                 (m.email.clone(), th.on(th.link)),
                             ]);
                         }
+                        if !m.ip.is_empty() {
+                            b.push(vec![
+                                ("from   ".into(), th.on(th.dim)),
+                                (m.ip.clone(), th.on(th.accent)),
+                            ]);
+                        }
                         if m.pubkey.is_empty() {
                             b.push(vec![("key    none offered".into(), th.on(th.dim))]);
                         } else {
