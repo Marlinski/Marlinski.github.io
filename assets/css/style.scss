@@ -129,14 +129,13 @@ header {
 
 /* The whole site is also served over SSH as a Minitel. That is the sort of
    thing nobody discovers unless you put it in front of them. */
+/* Sits where the `now` line used to: under the tagline, in the header. */
 #ssh-invite {
-  display: flex;
+  display: inline-flex;
   align-items: baseline;
-  justify-content: center;
   gap: 0.5rem;
-  width: fit-content;
-  margin: 0.9rem auto 0;
-  padding: 0.3rem 0.7rem;
+  margin-top: 0.4rem;
+  padding: 0.2rem 0.6rem;
   border: 1px solid var(--border);
   background: var(--panel);
   font-size: 0.85rem;

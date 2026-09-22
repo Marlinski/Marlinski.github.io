@@ -7,6 +7,7 @@
 use std::sync::Arc;
 
 use crate::feed::{md_lines, post_lines, Feed, Span};
+use crate::store::Message;
 use crate::screen::*;
 
 #[derive(Clone, Copy, PartialEq)]
@@ -14,16 +15,19 @@ pub enum Section {
     Writing,
     Projects,
     Public,
+    Message,
+    Inbox,
     About,
 }
 
 impl Section {
-    const ALL: [Section; 4] = [Section::About, Section::Writing, Section::Projects, Section::Public];
     fn label(self) -> &'static str {
         match self {
             Section::Writing => "WRITING",
             Section::Projects => "PROJECTS",
             Section::Public => "PUBLIC",
+            Section::Message => "MESSAGE",
+            Section::Inbox => "INBOX",
             Section::About => "ABOUT",
         }
     }
@@ -48,6 +52,23 @@ pub struct App {
     pub want_readme: Option<(usize, Vec<String>)>,
     pub slow: bool,
     pub theme: ThemeKind,
+    /// True when the connecting key matched MINITEL_ADMIN_KEY.
+    pub admin: bool,
+    /// Whatever name they used: ssh alice@minitel.marlinski.org
+    pub user: String,
+    pub compose: String,
+    pub email: String,
+    /// 0 = email, 1 = message.
+    pub field: usize,
+    pub pubkey: String,
+    pub notice: Option<String>,
+    /// Set to a message id after the first D, cleared by anything else.
+    pub confirm_delete: Option<i64>,
+    pub want_delete: Option<i64>,
+    pub inbox: Vec<Message>,
+    pub want_send: Option<String>,
+    pub want_inbox: bool,
+    pub want_mark_read: Option<i64>,
     pub quit: bool,
     pub w: usize,
     pub h: usize,
@@ -68,12 +89,46 @@ impl App {
             want_readme: None,
             slow: false,
             theme: ThemeKind::Dark,
+            admin: false,
+            user: String::new(),
+            compose: String::new(),
+            email: String::new(),
+            field: 0,
+            pubkey: String::new(),
+            notice: None,
+            confirm_delete: None,
+            want_delete: None,
+            inbox: Vec::new(),
+            want_send: None,
+            want_inbox: false,
+            want_mark_read: None,
             quit: false,
             w,
             h,
         };
         a.sync_body();
         a
+    }
+
+    /// INBOX only exists for the owner.
+    pub fn sections(&self) -> Vec<Section> {
+        let mut v = vec![
+            Section::About,
+            Section::Writing,
+            Section::Projects,
+            Section::Public,
+            Section::Message,
+        ];
+        if self.admin {
+            v.push(Section::Inbox);
+        }
+        v
+    }
+
+    /// True while the compose box has the keyboard: raw characters then, not
+    /// navigation keys.
+    pub fn editing(&self) -> bool {
+        self.section == Section::Message && self.focus == Focus::Content
     }
 
     fn th(&self) -> Theme {
@@ -96,7 +151,8 @@ impl App {
             Section::Writing => self.feed.posts.len(),
             Section::Projects => self.feed.projects.len(),
             Section::Public => self.feed.public.len(),
-            Section::About => 0,
+            Section::Inbox => self.inbox.len(),
+            Section::Message | Section::About => 0,
         }
     }
 
@@ -106,7 +162,7 @@ impl App {
     /// rather than sitting there empty.
     fn layout(&self) -> [(usize, usize); 3] {
         let inner = self.w;
-        let flat = self.section == Section::About;
+        let flat = matches!(self.section, Section::About | Section::Message);
         match self.panes() {
             3 => {
                 let nav = 20;
@@ -118,13 +174,17 @@ impl App {
                 [(0, nav), (nav, list), (nav + list, content)]
             }
             2 => {
+                let list = (inner * 40 / 100).clamp(24, 40);
+                if self.focus == Focus::Nav {
+                    return [(0, list), (0, 0), (list, inner - list)];
+                }
                 if flat {
                     return [(0, 0), (0, 0), (0, inner)];
                 }
-                let list = (inner * 40 / 100).clamp(24, 40);
                 [(0, 0), (0, list), (list, inner - list)]
             }
             _ => match self.focus {
+                Focus::Nav => [(0, inner), (0, 0), (0, 0)],
                 Focus::Content => [(0, 0), (0, 0), (0, inner)],
                 _ => [(0, 0), (0, inner), (0, 0)],
             },
@@ -216,6 +276,54 @@ impl App {
                     }
                 }
             }
+            Section::Message => {
+                // Drawn directly by form(), so there is no body to build.
+                self.body_key = "msg".into();
+                self.body.clear();
+            }
+            Section::Inbox => {
+                if self.inbox.is_empty() {
+                    self.body_key = "inbox:empty".into();
+                    self.body = vec![vec![("no messages yet".into(), th.on(th.dim))]];
+                } else if let Some(m) = self.inbox.get(self.item) {
+                    let key = format!("inbox:{}:{w}:{}", m.id, m.read);
+                    if key != self.body_key {
+                        self.body_key = key;
+                        self.scroll = 0;
+                        let mut b: Vec<Vec<Span>> = Vec::new();
+                        b.push(vec![(
+                            format!("from {}", if m.who.is_empty() { "anonymous" } else { &m.who }),
+                            th.strong(th.heading),
+                        )]);
+                        b.push(vec![(format!("{} UTC", m.at), th.on(th.dim))]);
+                        if !m.email.is_empty() {
+                            b.push(vec![
+                                ("email  ".into(), th.on(th.dim)),
+                                (m.email.clone(), th.on(th.link)),
+                            ]);
+                        }
+                        if m.pubkey.is_empty() {
+                            b.push(vec![("key    none offered".into(), th.on(th.dim))]);
+                        } else {
+                            for (i, l) in wrap(&m.pubkey, w.saturating_sub(7)).iter().enumerate() {
+                                let label = if i == 0 { "key    " } else { "       " };
+                                b.push(vec![
+                                    (label.to_string(), th.on(th.dim)),
+                                    (l.clone(), th.on(th.accent)),
+                                ]);
+                            }
+                        }
+                        b.push(vec![(String::new(), th.base())]);
+                        for l in wrap(&m.body, w) {
+                            b.push(vec![(l, th.base())]);
+                        }
+                        if !m.read {
+                            self.want_mark_read = Some(m.id);
+                        }
+                        self.body = b;
+                    }
+                }
+            }
             Section::About => {
                 let key = format!("about:{w}");
                 if key != self.body_key {
@@ -252,6 +360,15 @@ impl App {
         }
     }
 
+    pub fn set_inbox(&mut self, msgs: Vec<Message>) {
+        self.inbox = msgs;
+        if self.item >= self.inbox.len() {
+            self.item = 0;
+        }
+        self.body_key.clear();
+        self.sync_body();
+    }
+
     pub fn set_readme(&mut self, md: Option<String>) {
         let w = self.content_w();
         let th = self.th();
@@ -270,6 +387,25 @@ impl App {
                 self.quit = true;
                 false
             }
+            Key::Delete => {
+                if self.admin && self.section == Section::Inbox {
+                    if let Some(m) = self.inbox.get(self.item) {
+                        if self.confirm_delete == Some(m.id) {
+                            self.want_delete = Some(m.id);
+                            self.confirm_delete = None;
+                            self.notice = Some("deleted".into());
+                        } else {
+                            // Two presses, because there is no undo.
+                            self.confirm_delete = Some(m.id);
+                            self.notice = Some("press D again to delete".into());
+                        }
+                        self.body_key.clear();
+                        self.sync_body();
+                        return true;
+                    }
+                }
+                false
+            }
             Key::Theme => {
                 self.theme = match self.theme {
                     ThemeKind::Dark => ThemeKind::Dos,
@@ -285,7 +421,7 @@ impl App {
                 true
             }
             Key::Index => {
-                self.focus = if self.panes() == 3 { Focus::Nav } else { Focus::List };
+                self.focus = Focus::Nav;
                 true
             }
             Key::Back => {
@@ -294,7 +430,7 @@ impl App {
                 // you pressed Escape once too often is infuriating.
                 self.focus = match self.focus {
                     Focus::Content => Focus::List,
-                    Focus::List if self.panes() == 3 => Focus::Nav,
+                    Focus::List => Focus::Nav,
                     f => f,
                 };
                 true
@@ -309,38 +445,33 @@ impl App {
             Key::Left => {
                 self.focus = match self.focus {
                     Focus::Content if self.list_len() > 0 => Focus::List,
-                    Focus::Content if self.panes() == 3 => Focus::Nav,
-                    Focus::List if self.panes() == 3 => Focus::Nav,
+                    Focus::Content => Focus::Nav,
+                    Focus::List => Focus::Nav,
                     f => f,
                 };
                 true
             }
             Key::Tab => {
-                let three = self.panes() == 3;
                 let has_list = self.list_len() > 0;
                 self.focus = match self.focus {
                     Focus::Nav if has_list => Focus::List,
                     Focus::Nav => Focus::Content,
                     Focus::List => Focus::Content,
-                    Focus::Content => {
-                        if three {
-                            Focus::Nav
-                        } else if has_list {
-                            Focus::List
-                        } else {
-                            Focus::Content
-                        }
-                    }
+                    Focus::Content => Focus::Nav,
                 };
                 true
             }
             Key::Up => {
                 match self.focus {
                     Focus::Nav => {
-                        let i = Section::ALL.iter().position(|s| *s == self.section).unwrap_or(0);
-                        self.section = Section::ALL[(i + Section::ALL.len() - 1) % Section::ALL.len()];
+                        let i = self.sections().iter().position(|s| *s == self.section).unwrap_or(0);
+                        let secs = self.sections();
+                        self.section = secs[(i + secs.len() - 1) % secs.len()];
                         self.item = 0;
                         self.body_key.clear();
+                        if self.section == Section::Inbox {
+                            self.want_inbox = true;
+                        }
                         self.sync_body();
                     }
                     Focus::List => {
@@ -357,10 +488,14 @@ impl App {
             Key::Down => {
                 match self.focus {
                     Focus::Nav => {
-                        let i = Section::ALL.iter().position(|s| *s == self.section).unwrap_or(0);
-                        self.section = Section::ALL[(i + 1) % Section::ALL.len()];
+                        let i = self.sections().iter().position(|s| *s == self.section).unwrap_or(0);
+                        let secs = self.sections();
+                        self.section = secs[(i + 1) % secs.len()];
                         self.item = 0;
                         self.body_key.clear();
+                        if self.section == Section::Inbox {
+                            self.want_inbox = true;
+                        }
                         self.sync_body();
                     }
                     Focus::List => {
@@ -399,6 +534,102 @@ impl App {
         }
     }
 
+    fn field_mut(&mut self) -> &mut String {
+        if self.field == 0 {
+            &mut self.email
+        } else {
+            &mut self.compose
+        }
+    }
+
+    /// Raw bytes while the compose box has the keyboard.
+    ///
+    /// Navigation keys are deliberately not decoded here — someone typing a
+    /// message should be able to write "q" without hanging up.
+    pub fn input(&mut self, data: &[u8]) -> bool {
+        let mut dirty = false;
+
+        // Strip CSI sequences first. Otherwise an arrow key arrives as
+        // ESC [ A: the ESC leaves the field and "[A" gets typed into it.
+        let mut clean: Vec<u8> = Vec::with_capacity(data.len());
+        let mut i = 0;
+        while i < data.len() {
+            if data[i] == 0x1b && i + 1 < data.len() && data[i + 1] == b'[' {
+                i += 2;
+                while i < data.len() && !(0x40..=0x7e).contains(&data[i]) {
+                    i += 1;
+                }
+                i += 1; // the final byte
+                continue;
+            }
+            clean.push(data[i]);
+            i += 1;
+        }
+
+        let text = String::from_utf8_lossy(&clean);
+        for ch in text.chars() {
+            match ch {
+                '\t' => {
+                    self.field = 1 - self.field;
+                    dirty = true;
+                }
+                '\r' | '\n' => {
+                    if self.field == 0 {
+                        // Enter in the email field just moves on.
+                        self.field = 1;
+                    } else {
+                        let body = self.compose.trim().to_string();
+                        let email = self.email.trim().to_string();
+                        if !looks_like_email(&email) {
+                            self.notice = Some("an email is required to send".into());
+                            self.field = 0;
+                        } else if body.is_empty() {
+                            self.notice = Some("nothing to send".into());
+                        } else {
+                            self.want_send = Some(body);
+                            self.compose.clear();
+                            self.notice = Some("sent — thank you".into());
+                            self.focus = Focus::List;
+                        }
+                    }
+                    dirty = true;
+                }
+                '\u{1b}' => {
+                    self.focus = Focus::List;
+                    dirty = true;
+                }
+                '\u{15}' => {
+                    // Ctrl-U, as a shell would.
+                    self.field_mut().clear();
+                    dirty = true;
+                }
+                '\u{7f}' | '\u{8}' => {
+                    self.field_mut().pop();
+                    dirty = true;
+                }
+                '\u{3}' | '\u{4}' => {
+                    self.quit = true;
+                    return false;
+                }
+                c if !c.is_control() => {
+                    let limit = if self.field == 0 { 120 } else { 500 };
+                    let f = self.field_mut();
+                    if f.chars().count() < limit {
+                        f.push(c);
+                        self.notice = None;
+                        dirty = true;
+                    }
+                }
+                _ => {}
+            }
+        }
+        if dirty {
+            self.body_key.clear();
+            self.sync_body();
+        }
+        dirty
+    }
+
     pub fn resize(&mut self, w: usize, h: usize) {
         self.w = w;
         self.h = h;
@@ -421,7 +652,8 @@ impl App {
 
         if nw > 0 {
             self.nav_pane(&mut s, &th, nx, top, nw, height);
-        } else if two {
+        }
+        if two && nw == 0 {
             self.tab_strip(&mut s, &th);
         }
         if lw > 0 {
@@ -454,7 +686,7 @@ impl App {
 
     fn tab_strip(&self, s: &mut Screen, th: &Theme) {
         let mut x = 1;
-        for sec in Section::ALL {
+        for sec in self.sections() {
             let st = if sec == self.section { th.sel() } else { th.on(th.dim) };
             x = s.text(x, 1, &format!(" {} ", sec.label()), st) + 1;
         }
@@ -466,7 +698,7 @@ impl App {
         s.frame(x, y, w, h, th.border, bs, Some(("MENU", ts)));
 
         let mut ly = y + 2;
-        for sec in Section::ALL {
+        for sec in self.sections() {
             let on = sec == self.section;
             let st = if on && focused {
                 th.sel()
@@ -479,7 +711,8 @@ impl App {
                 Section::Writing => self.feed.posts.len(),
                 Section::Projects => self.feed.projects.len(),
                 Section::Public => self.feed.public.len(),
-                Section::About => 0,
+                Section::Inbox => self.inbox.len(),
+                _ => 0,
             };
             let label = if n > 0 {
                 format!(" {:<9}{:>3} ", sec.label(), n)
@@ -639,7 +872,39 @@ impl App {
                     ly += 1;
                 }
             }
-            Section::About => {
+            Section::Inbox => {
+                let top = self.item.saturating_sub(rows.saturating_sub(1));
+                for (i, m) in self.inbox.iter().enumerate().skip(top) {
+                    if ly >= y + h - 1 {
+                        break;
+                    }
+                    let on = i == self.item;
+                    let st = if on && focused {
+                        th.sel()
+                    } else if on {
+                        th.strong(th.heading)
+                    } else {
+                        th.base()
+                    };
+                    if on {
+                        for k in x + 1..x + w - 1 {
+                            s.put(k, ly, ' ', st);
+                        }
+                    }
+                    let (mark, mst) = if m.read {
+                        ('○', th.on(th.dim))
+                    } else {
+                        ('●', th.strong(th.code))
+                    };
+                    s.put(x + 2, ly, mark, if on { st } else { mst });
+                    let who = if m.who.is_empty() { "anonymous" } else { &m.who };
+                    s.text(x + 4, ly, &truncate(who, 12), st);
+                    let preview = m.body.replace('\n', " ");
+                    s.text(x + 17, ly, &truncate(&preview, iw.saturating_sub(15)), if on { st } else { th.on(th.dim) });
+                    ly += 1;
+                }
+            }
+            Section::Message | Section::About => {
                 for l in wrap(&self.feed.tagline, iw) {
                     if ly >= y + h - 1 {
                         break;
@@ -670,6 +935,14 @@ impl App {
                 Some(e) => (e.title.clone(), e.url.clone()),
                 None => (String::new(), String::new()),
             },
+            Section::Message => ("LEAVE A MESSAGE".to_string(), String::new()),
+            Section::Inbox => match self.inbox.get(self.item) {
+                Some(m) => (
+                    format!("from {}", if m.who.is_empty() { "anonymous" } else { &m.who }),
+                    format!("{} UTC", m.at),
+                ),
+                None => ("INBOX".to_string(), String::new()),
+            },
             Section::About => ("ABOUT".to_string(), "marlinski.org".to_string()),
         };
 
@@ -699,6 +972,11 @@ impl App {
             ly += 1;
         }
 
+        if self.section == Section::Message {
+            self.form(s, th, x, ly, w, y + h - ly);
+            return;
+        }
+
         let body_top = ly;
         for line in self.body.iter().skip(self.scroll) {
             if ly >= y + h - 1 {
@@ -723,12 +1001,102 @@ impl App {
         s.text(tx, y + h - 1, &t, th.on(th.dim));
     }
 
+
+    /// The compose form: a one-line email box and a multi-line message box.
+    ///
+    /// Drawn rather than composed from body lines, because an input needs a
+    /// frame, a caret in the right cell, and a focus colour — none of which a
+    /// list of styled strings gives you.
+    fn form(&self, s: &mut Screen, th: &Theme, x: usize, y: usize, w: usize, h: usize) {
+        let iw = w.saturating_sub(4);
+        let mut ly = y;
+
+        for l in wrap(
+            "Leave a message. It lands in a mailbox only Marlinski can read.",
+            iw,
+        ) {
+            s.text(x + 2, ly, &l, th.base());
+            ly += 1;
+        }
+        ly += 1;
+
+        if let Some(n) = &self.notice {
+            s.text(x + 2, ly, &truncate(n, iw), th.strong(th.code));
+        }
+        ly += 2;
+
+        let editing = self.editing();
+        let bw = iw;
+
+        // ── email, one line ──
+        let on_email = editing && self.field == 0;
+        s.text(x + 2, ly, "EMAIL", if on_email { th.strong(th.code) } else { th.on(th.dim) });
+        ly += 1;
+        let ebs = if on_email { th.strong(th.accent) } else { th.on(th.dim) };
+        s.frame(x + 2, ly, bw, 3, th.border, ebs, None);
+        let evis: String = self.email.chars().rev().take(bw - 4).collect::<Vec<_>>().into_iter().rev().collect();
+        let ex = s.text(x + 4, ly + 1, &evis, th.base());
+        if on_email {
+            s.put(ex, ly + 1, '\u{2588}', th.strong(th.code));
+        }
+        ly += 4;
+
+        // ── message, as many lines as fit ──
+        let on_body = editing && self.field == 1;
+        s.text(x + 2, ly, "MESSAGE", if on_body { th.strong(th.code) } else { th.on(th.dim) });
+        ly += 1;
+        let rows_left = (y + h).saturating_sub(ly + 3).max(3);
+        let bh = rows_left.min(8).max(3);
+        let bbs = if on_body { th.strong(th.accent) } else { th.on(th.dim) };
+        s.frame(x + 2, ly, bw, bh, th.border, bbs, None);
+
+        let inner = bw.saturating_sub(4);
+        let lines = wrap(&self.compose, inner);
+        let visible = bh.saturating_sub(2);
+        let skip = lines.len().saturating_sub(visible);
+        let mut ty = ly + 1;
+        let mut last_end = x + 4;
+        for l in lines.iter().skip(skip) {
+            if ty >= ly + bh - 1 {
+                break;
+            }
+            last_end = s.text(x + 4, ty, l, th.base());
+            ty += 1;
+        }
+        if on_body {
+            let (cx, cy) = if lines.is_empty() {
+                (x + 4, ly + 1)
+            } else {
+                (last_end, ty.saturating_sub(1))
+            };
+            s.put(cx, cy, '\u{2588}', th.strong(th.code));
+        }
+        ly += bh + 1;
+
+        // ── footer ──
+        if ly < y + h {
+            let hint = if editing {
+                "TAB next field   ENTER send   ESC leave"
+            } else {
+                "ENTER to start typing"
+            };
+            s.text(x + 2, ly, &truncate(hint, iw.saturating_sub(12)), th.on(th.dim));
+            let count = format!("{}/500", self.compose.chars().count());
+            let cx = x + w - 2 - count.chars().count();
+            s.text(cx, ly, &count, th.on(th.dim));
+        }
+    }
+
     fn status_bar(&self, s: &mut Screen, th: &Theme) {
         let fy = self.h.saturating_sub(1);
         s.fill_row(fy, th.bar());
-        let keys = match self.focus {
+        let keys = if self.editing() {
+            " typing…  ENTER send  ESC leave  CTRL-U clear  CTRL-C quit "
+        } else {
+            match self.focus {
             Focus::Content => " ^v scroll  SPACE page  TAB pane  B back  F baud  T theme  Q quit ",
             _ => " ^v move  ENTER open  TAB pane  1-9 jump  F baud  T theme  Q quit ",
+            }
         };
         s.text(1, fy, keys, th.bar());
     }
@@ -762,6 +1130,7 @@ pub enum Key {
     Prev,
     Baud,
     Theme,
+    Delete,
     Quit,
 }
 
@@ -804,6 +1173,7 @@ pub fn decode(data: &[u8]) -> (Vec<Key>, Vec<u8>) {
             b'i' | b'I' | b's' | b'S' => out.push(Key::Index),
             b'f' | b'F' => out.push(Key::Baud),
             b't' | b'T' => out.push(Key::Theme),
+            b'd' | b'D' => out.push(Key::Delete),
             b'k' => out.push(Key::Up),
             b'j' => out.push(Key::Down),
             b'h' => out.push(Key::Left),
@@ -814,6 +1184,15 @@ pub fn decode(data: &[u8]) -> (Vec<Key>, Vec<u8>) {
         i += 1;
     }
     (out, Vec::new())
+}
+
+/// Deliberately loose: enough to catch a typo, not a validator.
+fn looks_like_email(s: &str) -> bool {
+    let at = s.find('@');
+    match at {
+        Some(i) => i > 0 && s[i + 1..].contains('.') && !s.ends_with('.') && !s.contains(' '),
+        None => false,
+    }
 }
 
 fn truncate(s: &str, max: usize) -> String {

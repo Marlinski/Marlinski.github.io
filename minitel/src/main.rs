@@ -10,6 +10,7 @@ mod app;
 mod cmd;
 mod feed;
 mod screen;
+mod store;
 mod web;
 
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -24,6 +25,7 @@ use tokio::sync::Mutex;
 
 use app::{decode, App};
 use feed::FeedCache;
+use store::Store;
 use screen::*;
 
 /// Characters per second while painting. A Minitel's 1200 baud line managed
@@ -53,6 +55,19 @@ async fn main() -> anyhow::Result<()> {
     // Warm the cache so the first visitor does not wait on an HTTP round trip.
     let _ = cache.get().await;
 
+    let db_path = std::env::var("MINITEL_DB").unwrap_or_else(|_| "/data/minitel.sqlite3".to_string());
+    let store = Store::open(&db_path)?;
+    eprintln!("minitel: mailbox at {db_path}");
+
+    // The owner's public key, in authorized_keys form. Public by definition, so
+    // it lives in the manifest rather than the Secret.
+    let admin_key = std::env::var("MINITEL_ADMIN_KEY")
+        .ok()
+        .and_then(|v| parse_admin_key(&v));
+    if admin_key.is_some() {
+        eprintln!("minitel: admin key configured");
+    }
+
     let key = match key_pem {
         Some(pem) => {
             eprintln!("minitel: host key from MINITEL_HOST_KEY_PEM");
@@ -76,7 +91,7 @@ async fn main() -> anyhow::Result<()> {
         .unwrap_or(8080);
     tokio::spawn(web::serve(http_port));
 
-    let mut server = Server { cache };
+    let mut server = Server { cache, store, admin_key: admin_key.map(Arc::new) };
     let socket = TcpListener::bind(("0.0.0.0", port)).await?;
     eprintln!("minitel: listening on 0.0.0.0:{port}, feed {feed_url}");
     server.run_on_socket(config, &socket).await?;
@@ -108,9 +123,26 @@ async fn load_or_create_host_key(path: &str) -> anyhow::Result<PrivateKey> {
     }
 }
 
+/// Reduces an authorized_keys line to the comparable key material.
+fn parse_admin_key(line: &str) -> Option<russh::keys::ssh_key::PublicKey> {
+    let line = line.trim();
+    if line.is_empty() {
+        return None;
+    }
+    match russh::keys::ssh_key::PublicKey::from_openssh(line) {
+        Ok(k) => Some(k),
+        Err(e) => {
+            eprintln!("minitel: MINITEL_ADMIN_KEY unreadable: {e}");
+            None
+        }
+    }
+}
+
 #[derive(Clone)]
 struct Server {
     cache: Arc<FeedCache>,
+    store: Store,
+    admin_key: Option<Arc<russh::keys::ssh_key::PublicKey>>,
 }
 
 impl russh::server::Server for Server {
@@ -118,6 +150,11 @@ impl russh::server::Server for Server {
     fn new_client(&mut self, _: Option<std::net::SocketAddr>) -> Client {
         Client {
             cache: self.cache.clone(),
+            store: self.store.clone(),
+            admin_key: self.admin_key.clone(),
+            admin: Arc::new(AtomicBool::new(false)),
+            user: Arc::new(Mutex::new(String::new())),
+            pubkey: Arc::new(Mutex::new(String::new())),
             app: Arc::new(Mutex::new(None)),
             size: Arc::new(Mutex::new((80, 24))),
             pending: Arc::new(Mutex::new(Vec::new())),
@@ -137,6 +174,12 @@ impl russh::server::Server for Server {
 
 struct Client {
     cache: Arc<FeedCache>,
+    store: Store,
+    admin_key: Option<Arc<russh::keys::ssh_key::PublicKey>>,
+    admin: Arc<AtomicBool>,
+    user: Arc<Mutex<String>>,
+    /// The key the visitor authenticated with, in authorized_keys form.
+    pubkey: Arc<Mutex<String>>,
     app: Arc<Mutex<Option<App>>>,
     size: Arc<Mutex<(usize, usize)>>,
     /// Bytes of a half-delivered escape sequence, waiting for the rest.
@@ -216,6 +259,72 @@ impl Client {
     }
 }
 
+impl Client {
+    fn hang_up(&self, channel: ChannelId, session: &mut Session) -> Result<(), russh::Error> {
+        let bye = format!("{RESET}{SHOW_CURSOR}\r\n  goodbye — https://marlinski.org\r\n\r\n");
+        let _ = session.data(channel, bye.into_bytes());
+        session.close(channel)
+    }
+
+    /// Carries out whatever the state machine asked for: fetch a README, save a
+    /// message, load the mailbox. It is split out because App::key is sync and
+    /// these all need to await.
+    async fn pump(&self, channel: ChannelId, session: &mut Session) {
+        // Paint first so "fetching" is visible, then do the slow thing.
+        let (readme, send, inbox, mark, del, email) = {
+            let mut guard = self.app.lock().await;
+            match guard.as_mut() {
+                Some(a) => (
+                    a.want_readme.take(),
+                    a.want_send.take(),
+                    std::mem::replace(&mut a.want_inbox, false),
+                    a.want_mark_read.take(),
+                    a.want_delete.take(),
+                    a.email.trim().to_string(),
+                ),
+                None => (None, None, false, None, None, String::new()),
+            }
+        };
+
+        if let Some((_idx, urls)) = readme {
+            let md = self.cache.readme(&urls).await;
+            if let Some(a) = self.app.lock().await.as_mut() {
+                a.set_readme(md);
+            }
+            self.repaint(session.handle(), channel).await;
+        }
+
+        if let Some(body) = send {
+            let who = self.user.lock().await.clone();
+            let key = self.pubkey.lock().await.clone();
+            if let Err(e) = self.store.add(who, email, key, body).await {
+                eprintln!("minitel: could not save message: {e}");
+            }
+        }
+
+        if let Some(id) = del {
+            self.store.delete(id).await;
+            let msgs = self.store.list().await;
+            if let Some(a) = self.app.lock().await.as_mut() {
+                a.set_inbox(msgs);
+            }
+            self.repaint(session.handle(), channel).await;
+        }
+
+        if let Some(id) = mark {
+            self.store.mark_read(id).await;
+        }
+
+        if inbox {
+            let msgs = self.store.list().await;
+            if let Some(a) = self.app.lock().await.as_mut() {
+                a.set_inbox(msgs);
+            }
+            self.repaint(session.handle(), channel).await;
+        }
+    }
+}
+
 impl Handler for Client {
     type Error = russh::Error;
 
@@ -230,19 +339,58 @@ impl Handler for Client {
     }
 
     // Open house: no credentials, any key, anyone.
-    async fn auth_none(&mut self, _user: &str) -> Result<Auth, Self::Error> {
-        Ok(Auth::Accept)
+    /// Anyone may enter, but the owner has to be recognised, and a client that
+    /// gets `none` accepted immediately never offers a key. So the first `none`
+    /// is rejected asking for publickey; if the visitor has no key their client
+    /// comes back to `none` and is let in.
+    async fn auth_none(&mut self, user: &str) -> Result<Auth, Self::Error> {
+        *self.user.lock().await = user.to_string();
+        // OpenSSH will not retry a method it has already failed, so the fallback
+        // cannot be `none` again: it is keyboard-interactive, answered with zero
+        // prompts, which the client completes without asking the visitor
+        // anything.
+        Ok(Auth::Reject {
+            proceed_with_methods: Some(russh::MethodSet::from(
+                &[
+                    russh::MethodKind::PublicKey,
+                    russh::MethodKind::KeyboardInteractive,
+                ][..],
+            )),
+            partial_success: false,
+        })
     }
 
     async fn auth_publickey(
         &mut self,
-        _user: &str,
-        _key: &russh::keys::ssh_key::PublicKey,
+        user: &str,
+        key: &russh::keys::ssh_key::PublicKey,
     ) -> Result<Auth, Self::Error> {
+        *self.user.lock().await = user.to_string();
+        if let Ok(line) = key.to_openssh() {
+            *self.pubkey.lock().await = line;
+        }
+        if let Some(admin) = &self.admin_key {
+            if key.key_data() == admin.key_data() {
+                self.admin.store(true, Ordering::SeqCst);
+                eprintln!("minitel: owner connected as {user}");
+            }
+        }
         Ok(Auth::Accept)
     }
 
-    async fn auth_password(&mut self, _user: &str, _pw: &str) -> Result<Auth, Self::Error> {
+    /// The keyless path in: no prompts, so nothing is asked of the visitor.
+    async fn auth_keyboard_interactive(
+        &mut self,
+        user: &str,
+        _submethods: &str,
+        _response: Option<russh::server::Response<'_>>,
+    ) -> Result<Auth, Self::Error> {
+        *self.user.lock().await = user.to_string();
+        Ok(Auth::Accept)
+    }
+
+    async fn auth_password(&mut self, user: &str, _pw: &str) -> Result<Auth, Self::Error> {
+        *self.user.lock().await = user.to_string();
         Ok(Auth::Accept)
     }
 
@@ -290,7 +438,11 @@ impl Handler for Client {
     ) -> Result<(), Self::Error> {
         let (w, h) = *self.size.lock().await;
         let feed = self.cache.get().await;
-        *self.app.lock().await = Some(App::new(feed, w, h));
+        let mut app = App::new(feed, w, h);
+        app.admin = self.admin.load(Ordering::SeqCst);
+        app.user = self.user.lock().await.clone();
+        app.pubkey = self.pubkey.lock().await.clone();
+        *self.app.lock().await = Some(app);
         self.repaint(session.handle(), channel).await;
         Ok(())
     }
@@ -321,6 +473,29 @@ impl Handler for Client {
         data: &[u8],
         session: &mut Session,
     ) -> Result<(), Self::Error> {
+        // While the compose box has the keyboard, bytes are text, not commands.
+        let editing = {
+            let guard = self.app.lock().await;
+            guard.as_ref().map(|a| a.editing()).unwrap_or(false)
+        };
+        if editing {
+            let (dirty, quit) = {
+                let mut guard = self.app.lock().await;
+                match guard.as_mut() {
+                    Some(a) => (a.input(data), a.quit),
+                    None => (false, false),
+                }
+            };
+            if quit {
+                return self.hang_up(channel, session);
+            }
+            if dirty {
+                self.repaint(session.handle(), channel).await;
+            }
+            self.pump(channel, session).await;
+            return Ok(());
+        }
+
         let keys = {
             let mut pend = self.pending.lock().await;
             let mut buf = std::mem::take(&mut *pend);
@@ -354,34 +529,12 @@ impl Handler for Client {
         }
 
         if quit {
-            let bye = format!(
-                "{RESET}{SHOW_CURSOR}\r\n  goodbye — https://marlinski.org\r\n\r\n"
-            );
-            let _ = session.data(channel, bye.into_bytes());
-            session.close(channel)?;
-            return Ok(());
+            return self.hang_up(channel, session);
         }
         if dirty {
             self.repaint(session.handle(), channel).await;
         }
-
-        // A README was requested. Paint first so the "fetching" line shows,
-        // then fetch and repaint — the alternative is a frozen screen for the
-        // length of an HTTP round trip.
-        let want = {
-            let mut guard = self.app.lock().await;
-            guard.as_mut().and_then(|a| a.want_readme.take())
-        };
-        if let Some((_idx, urls)) = want {
-            let md = self.cache.readme(&urls).await;
-            {
-                let mut guard = self.app.lock().await;
-                if let Some(a) = guard.as_mut() {
-                    a.set_readme(md);
-                }
-            }
-            self.repaint(session.handle(), channel).await;
-        }
+        self.pump(channel, session).await;
         Ok(())
     }
 }

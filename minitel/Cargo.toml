@@ -14,6 +14,7 @@ html2text = "0.17"
 anyhow = "1"
 rand = "0.10"
 pulldown-cmark = { version = "0.13.4", default-features = false, features = ["html"] }
+rusqlite = { version = "0.40.2", features = ["bundled"] }
 
 [profile.release]
 opt-level = "z"

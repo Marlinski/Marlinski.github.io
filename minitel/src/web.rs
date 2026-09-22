@@ -49,10 +49,9 @@ const PAGE: &str = r#"<!doctype html>
   }
   @keyframes blink { 0%,49% { opacity: 1 } 50%,100% { opacity: 0 } }
   @media (prefers-reduced-motion: reduce) { .caret { animation: none } }
-  p { color: var(--dim); font-size: 0.85rem; max-width: 46ch; }
+  p { color: var(--dim); font-size: 0.85rem; }
   a { color: var(--dim); }
   a:hover { color: #fff; }
-  .keys { color: var(--faint); font-size: 0.75rem; }
   @media (max-width: 480px) {
     .box { font-size: 0.85rem; padding: 0.9rem 1rem; flex-wrap: wrap; gap: 0.4rem; }
   }
@@ -64,11 +63,6 @@ const PAGE: &str = r#"<!doctype html>
   <div class="box">
     <span class="prompt">$</span><span class="cmd">ssh minitel.marlinski.org</span><span class="caret">&#9612;</span>
   </div>
-
-  <p>marlinski.org, served over SSH as a Minitel. Posts, projects and their
-  READMEs, in a terminal.</p>
-
-  <p class="keys">no account, no password &middot; also <span class="cmd">ssh minitel.marlinski.org blog</span></p>
 
   <p><a href="https://marlinski.org">&larr; marlinski.org</a></p>
 </body>

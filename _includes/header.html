@@ -4,13 +4,8 @@
     <div>
       <h1><a href="{{ '/' | relative_url }}">{{ site.title }}</a></h1>
       <p id="tagline">{{ site.description }}</p>
-      {% if site.now %}
-      <p id="now"><span class="now-label">now</span><span class="now-sep">·</span>{{ site.now }}<span class="caret">▌</span></p>
-      {% endif %}
+      <p id="ssh-invite"><span class="ssh-prompt">$</span><span class="ssh-cmd">ssh minitel.marlinski.org</span><span class="caret">▌</span></p>
     </div>
-  </div>
-  <div id="ssh-invite">
-    <span class="ssh-prompt">$</span><span class="ssh-cmd">ssh minitel.marlinski.org</span>
   </div>
   <div id="bar">
     <nav>
