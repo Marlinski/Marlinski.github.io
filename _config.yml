@@ -1,5 +1,5 @@
 title: Lucien Loiseau
-description: Research Engineer — AI · Blockchain · Cryptography · Decentralized Networks
+description: Research Engineer — Bio-inspired agentic systems · Blockchain · Cryptography · Decentralized Networks
 url: https://marlinski.org
 logo: /static/avatar.jpeg
 
@@ -9,7 +9,7 @@ twitter_username: lucienloiseau
 email: loiseau.lucien@gmail.com
 
 # One line under the tagline: what I'm building right now. Raw HTML, rendered as-is.
-now: 'building <a href="https://github.com/ovh/shai">SHAI</a> at OVHcloud — an AI coding agent that lives in your shell'
+now: 'building <a href="https://github.com/Marlinski/Groow">Groow</a> — a small mind that learns by changing its own weights'
 
 # Analytics (self-hosted Umami on sysiphe). Blank the website_id or delete this
 # block and no script is emitted at all.
