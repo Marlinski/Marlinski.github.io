@@ -200,7 +200,7 @@ impl App {
                     for (k, v) in [
                         ("web", "https://marlinski.org"),
                         ("code", "https://github.com/Marlinski"),
-                        ("ssh", "ssh marlinski.org"),
+                        ("ssh", "ssh minitel.marlinski.org"),
                     ] {
                         b.push(vec![
                             (format!("{k:<6}"), th.on(th.dim)),

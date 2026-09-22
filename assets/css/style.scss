@@ -125,6 +125,54 @@ header {
   .caret { animation: none; }
 }
 
+/* ── The SSH invitation ──────────────────────── */
+
+/* The whole site is also served over SSH as a Minitel. That is the sort of
+   thing nobody discovers unless you put it in front of them. */
+#ssh-invite {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  font-size: 0.85rem;
+  transition: border-color 0.15s;
+}
+
+#ssh-invite:hover {
+  border-color: var(--live);
+}
+
+.ssh-prompt {
+  color: var(--live);
+}
+
+.ssh-cmd {
+  color: var(--accent);
+  user-select: all;   /* one click selects the whole command */
+}
+
+.ssh-hint {
+  color: var(--dim);
+  font-size: 0.8rem;
+}
+
+.ssh-hint::before {
+  content: "— ";
+}
+
+@media (max-width: 620px) {
+  #ssh-invite {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .ssh-hint {
+    flex-basis: 100%;
+  }
+}
+
 /* nav and social links share one row */
 #bar {
   display: flex;
