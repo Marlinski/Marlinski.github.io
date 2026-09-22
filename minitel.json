@@ -1,0 +1,40 @@
+---
+layout: null
+permalink: /minitel.json
+---
+{%- comment -%}
+Machine-readable view of the site, consumed by the Minitel SSH service
+(minitel/). Keeping it here rather than in the service means the terminal
+follows the blog automatically: rebuild the site and the SSH front end serves
+the new content on its next refresh, with no redeploy.
+{%- endcomment -%}
+{
+  "generated": {{ site.time | date_to_xmlschema | jsonify }},
+  "title": {{ site.title | jsonify }},
+  "tagline": {{ site.description | jsonify }},
+  "now": {{ site.now | strip_html | jsonify }},
+  "projects": [
+{%- for p in site.data.projects %}
+    {
+      "name": {{ p.name | jsonify }},
+      "blurb": {{ p.blurb | jsonify }},
+      "tags": {{ p.tags | jsonify }},
+      "status": {{ p.status | default: "" | jsonify }},
+      "years": {{ p.years | default: "" | jsonify }},
+      "url": {{ p.url | default: "" | jsonify }}
+    }{% unless forloop.last %},{% endunless %}
+{%- endfor %}
+  ],
+  "posts": [
+{%- for post in site.posts %}
+    {
+      "title": {{ post.title | jsonify }},
+      "date": {{ post.date | date: "%Y-%m-%d" | jsonify }},
+      "tags": {{ post.tags | jsonify }},
+      "blurb": {{ post.blurb | default: "" | jsonify }},
+      "url": {{ post.url | absolute_url | jsonify }},
+      "html": {{ post.content | jsonify }}
+    }{% unless forloop.last %},{% endunless %}
+{%- endfor %}
+  ]
+}

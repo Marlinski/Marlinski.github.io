@@ -16,3 +16,7 @@ now: 'building <a href="https://github.com/Marlinski/Groow">Groow</a> — a smal
 umami:
   script_url: https://stats.marlinski.org/script.js
   website_id: 3cf1e2f6-719d-4080-83a4-456998cc0452
+
+# The Minitel SSH front end lives in this repo but is not part of the site.
+exclude:
+  - minitel/

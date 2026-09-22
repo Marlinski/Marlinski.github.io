@@ -3,3 +3,7 @@ vendor/
 .bundle/
 .jekyll-cache/
 .jekyll-metadata
+
+# Rust build output for the Minitel SSH service. Cargo.lock is deliberately
+# tracked: this is a binary, so the build should be reproducible.
+minitel/target/
