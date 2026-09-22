@@ -1,0 +1,42 @@
+# Slides, talks and course material. One source for both /public on the website
+# and the PUBLIC section of the SSH Minitel.
+#
+# kind:  presentation | teaching
+# files: the first one is what the title links to
+
+- kind: presentation
+  title: Codelab — Introduction au développement Web3
+  date: May 2022
+  dir: /presentations/2022-codelab-intro-web3-nft
+  files:
+    - { name: slides.pdf }
+    - { name: README.html }   # jekyll renders the .md; linking .md 404s
+    - { name: remix-workspace-solution.zip }
+
+- kind: presentation
+  title: Introduction to Decentralized Finance (DeFi)
+  date: Nov 2020
+  dir: /presentations/2020-intro-defi
+  files:
+    - { name: presentation.html }
+
+- kind: presentation
+  title: "Terra: a Delay Tolerant Network Implementation"
+  date: Nov 2018
+  dir: /presentations/2018-ietf-terra
+  files:
+    - { name: lucien-loiseau-terra-bpbis-impl-report.pdf }
+
+- kind: teaching
+  title: Computer Security
+  where: Canado-Technique Institute, Port-au-Prince, Haiti.
+  date: Aug 2014
+  dir: /teachings/ayitic
+  files:
+    - { name: intro-securite-informatique.pdf, desc: introductory slides }
+    - { name: Support-cryptography.pdf, desc: cryptography slides }
+    - { name: TP-gnupg.pdf, desc: cryptography lab }
+    - { name: Support-securite_reseaux.pdf, desc: network security slides }
+    - { name: TP-SSL.pdf, desc: network security lab }
+    - { name: Support-securite_GNULinux.pdf, desc: GNU/Linux security slides }
+    - { name: wargame.pdf, desc: wargame lab }

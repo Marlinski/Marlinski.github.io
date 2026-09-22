@@ -63,12 +63,32 @@ pub struct Post {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct PublicFile {
+    pub name: String,
+    pub desc: String,
+    pub url: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct PublicItem {
+    pub kind: String,
+    pub title: String,
+    #[serde(rename = "where")]
+    pub where_at: String,
+    pub date: String,
+    pub url: String,
+    pub files: Vec<PublicFile>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct Feed {
     pub title: String,
     pub tagline: String,
     pub now: String,
     pub projects: Vec<Project>,
     pub posts: Vec<Post>,
+    #[serde(default)]
+    pub public: Vec<PublicItem>,
 }
 
 impl Feed {
@@ -81,6 +101,7 @@ impl Feed {
             now: String::new(),
             projects: Vec::new(),
             posts: Vec::new(),
+            public: Vec::new(),
         }
     }
 }

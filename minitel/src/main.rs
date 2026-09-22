@@ -10,6 +10,7 @@ mod app;
 mod cmd;
 mod feed;
 mod screen;
+mod web;
 
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::Arc;
@@ -66,6 +67,14 @@ async fn main() -> anyhow::Result<()> {
         keys: vec![key],
         ..Default::default()
     });
+
+    // The landing page rides along in this process: one binary, one pod, and
+    // a second listener rather than a whole deployment to serve one page.
+    let http_port: u16 = std::env::var("MINITEL_HTTP_PORT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(8080);
+    tokio::spawn(web::serve(http_port));
 
     let mut server = Server { cache };
     let socket = TcpListener::bind(("0.0.0.0", port)).await?;

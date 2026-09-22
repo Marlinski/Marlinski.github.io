@@ -13,15 +13,17 @@ use crate::screen::*;
 pub enum Section {
     Writing,
     Projects,
+    Public,
     About,
 }
 
 impl Section {
-    const ALL: [Section; 3] = [Section::About, Section::Writing, Section::Projects];
+    const ALL: [Section; 4] = [Section::About, Section::Writing, Section::Projects, Section::Public];
     fn label(self) -> &'static str {
         match self {
             Section::Writing => "WRITING",
             Section::Projects => "PROJECTS",
+            Section::Public => "PUBLIC",
             Section::About => "ABOUT",
         }
     }
@@ -93,6 +95,7 @@ impl App {
         match self.section {
             Section::Writing => self.feed.posts.len(),
             Section::Projects => self.feed.projects.len(),
+            Section::Public => self.feed.public.len(),
             Section::About => 0,
         }
     }
@@ -177,6 +180,39 @@ impl App {
                                 ];
                             }
                         }
+                    }
+                }
+            }
+            Section::Public => {
+                if let Some(e) = self.feed.public.get(self.item) {
+                    let key = format!("pub:{}:{w}", e.title);
+                    if key != self.body_key {
+                        self.body_key = key;
+                        self.scroll = 0;
+                        let mut b: Vec<Vec<Span>> = Vec::new();
+                        for l in wrap(&e.title, w) {
+                            b.push(vec![(l, th.strong(th.heading))]);
+                        }
+                        let mut meta = e.date.clone();
+                        if !e.where_at.is_empty() {
+                            meta.push_str("  ");
+                            meta.push_str(&e.where_at);
+                        }
+                        b.push(vec![(meta, th.on(th.dim))]);
+                        b.push(vec![(String::new(), th.base())]);
+                        b.push(vec![("FILES".into(), th.strong(th.code))]);
+                        for f in &e.files {
+                            let mut row = vec![(format!("  {}", f.name), th.base())];
+                            if !f.desc.is_empty() {
+                                row.push((format!("  {}", f.desc), th.on(th.dim)));
+                            }
+                            b.push(row);
+                            b.push(vec![(
+                                format!("    {}", f.url),
+                                Style { underline: true, ..th.on(th.link) },
+                            )]);
+                        }
+                        self.body = b;
                     }
                 }
             }
@@ -302,7 +338,7 @@ impl App {
                 match self.focus {
                     Focus::Nav => {
                         let i = Section::ALL.iter().position(|s| *s == self.section).unwrap_or(0);
-                        self.section = Section::ALL[(i + 2) % 3];
+                        self.section = Section::ALL[(i + Section::ALL.len() - 1) % Section::ALL.len()];
                         self.item = 0;
                         self.body_key.clear();
                         self.sync_body();
@@ -322,7 +358,7 @@ impl App {
                 match self.focus {
                     Focus::Nav => {
                         let i = Section::ALL.iter().position(|s| *s == self.section).unwrap_or(0);
-                        self.section = Section::ALL[(i + 1) % 3];
+                        self.section = Section::ALL[(i + 1) % Section::ALL.len()];
                         self.item = 0;
                         self.body_key.clear();
                         self.sync_body();
@@ -442,6 +478,7 @@ impl App {
             let n = match sec {
                 Section::Writing => self.feed.posts.len(),
                 Section::Projects => self.feed.projects.len(),
+                Section::Public => self.feed.public.len(),
                 Section::About => 0,
             };
             let label = if n > 0 {
@@ -577,6 +614,31 @@ impl App {
                     ly += 1;
                 }
             }
+            Section::Public => {
+                let top = self.item.saturating_sub(rows.saturating_sub(1));
+                for (i, e) in self.feed.public.iter().enumerate().skip(top) {
+                    if ly >= y + h - 1 {
+                        break;
+                    }
+                    let on = i == self.item;
+                    let st = if on && focused {
+                        th.sel()
+                    } else if on {
+                        th.strong(th.heading)
+                    } else {
+                        th.base()
+                    };
+                    if on {
+                        for k in x + 1..x + w - 1 {
+                            s.put(k, ly, ' ', st);
+                        }
+                    }
+                    let mark = if e.kind == "teaching" { '§' } else { '▸' };
+                    s.put(x + 2, ly, mark, if on { st } else { th.on(th.dim) });
+                    s.text(x + 4, ly, &truncate(&e.title, iw.saturating_sub(2)), st);
+                    ly += 1;
+                }
+            }
             Section::About => {
                 for l in wrap(&self.feed.tagline, iw) {
                     if ly >= y + h - 1 {
@@ -602,6 +664,10 @@ impl App {
             },
             Section::Projects => match self.feed.projects.get(self.item) {
                 Some(p) => (p.name.clone(), if p.has_repo() { p.gh.clone() } else { p.url.clone() }),
+                None => (String::new(), String::new()),
+            },
+            Section::Public => match self.feed.public.get(self.item) {
+                Some(e) => (e.title.clone(), e.url.clone()),
                 None => (String::new(), String::new()),
             },
             Section::About => ("ABOUT".to_string(), "marlinski.org".to_string()),
