@@ -21,7 +21,8 @@ the new content on its next refresh, with no redeploy.
       "tags": {{ p.tags | jsonify }},
       "status": {{ p.status | default: "" | jsonify }},
       "years": {{ p.years | default: "" | jsonify }},
-      "url": {{ p.url | default: "" | jsonify }}
+      "url": {{ p.url | default: "" | jsonify }},
+      "gh": {{ p.gh | default: p.url | jsonify }}
     }{% unless forloop.last %},{% endunless %}
 {%- endfor %}
   ],

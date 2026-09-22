@@ -19,11 +19,13 @@ pub struct Style {
     pub fg: u8,
     pub bg: u8,
     pub bold: bool,
+    pub italic: bool,
+    pub underline: bool,
 }
 
 impl Default for Style {
     fn default() -> Self {
-        Style { fg: WHITE, bg: BLACK, bold: false }
+        Style { fg: WHITE, bg: BLACK, bold: false, italic: false, underline: false }
     }
 }
 
@@ -32,10 +34,16 @@ impl Style {
         Style { fg, ..Default::default() }
     }
     pub fn bold(fg: u8) -> Self {
-        Style { fg, bg: BLACK, bold: true }
+        Style { fg, bold: true, ..Default::default() }
+    }
+    pub fn italic(fg: u8) -> Self {
+        Style { fg, italic: true, ..Default::default() }
+    }
+    pub fn link(fg: u8) -> Self {
+        Style { fg, underline: true, ..Default::default() }
     }
     pub fn bar(fg: u8, bg: u8) -> Self {
-        Style { fg, bg, bold: false }
+        Style { fg, bg, ..Default::default() }
     }
 }
 
@@ -129,6 +137,12 @@ pub fn sgr(style: Style) -> String {
     if style.bold {
         s.push_str(";1");
     }
+    if style.italic {
+        s.push_str(";3");
+    }
+    if style.underline {
+        s.push_str(";4");
+    }
     s.push_str(&format!(";{}", 30 + style.fg));
     s.push_str(&format!(";{}", 40 + style.bg));
     s.push('m');
@@ -143,3 +157,124 @@ pub const CLEAR: &str = "\x1b[2J\x1b[H";
 pub const HIDE_CURSOR: &str = "\x1b[?25l";
 pub const SHOW_CURSOR: &str = "\x1b[?25h";
 pub const RESET: &str = "\x1b[0m";
+
+// ── Themes ───────────────────────────────────────────────────────────────────
+
+/// Box-drawing characters: h, v, tl, tr, bl, br, tee-left, tee-right,
+/// tee-down, tee-up.
+pub struct Border {
+    pub h: char,
+    pub v: char,
+    pub tl: char,
+    pub tr: char,
+    pub bl: char,
+    pub br: char,
+    pub tl_t: char,
+    pub tr_t: char,
+    pub td: char,
+    pub tu: char,
+}
+
+pub const SINGLE: Border = Border {
+    h: '─', v: '│', tl: '┌', tr: '┐', bl: '└', br: '┘',
+    tl_t: '├', tr_t: '┤', td: '┬', tu: '┴',
+};
+
+/// The DOS look: double bars, as every text-mode utility drew them.
+pub const DOUBLE: Border = Border {
+    h: '═', v: '║', tl: '╔', tr: '╗', bl: '╚', br: '╝',
+    tl_t: '╠', tr_t: '╣', td: '╦', tu: '╩',
+};
+
+#[derive(Clone, Copy, PartialEq)]
+pub enum ThemeKind {
+    Dark,
+    Dos,
+}
+
+pub struct Theme {
+    pub kind: ThemeKind,
+    pub bg: u8,
+    pub fg: u8,
+    pub dim: u8,
+    pub accent: u8,
+    pub heading: u8,
+    pub code: u8,
+    pub link: u8,
+    pub bar_fg: u8,
+    pub bar_bg: u8,
+    pub sel_fg: u8,
+    pub sel_bg: u8,
+    pub border: &'static Border,
+}
+
+impl Theme {
+    pub fn get(kind: ThemeKind) -> Theme {
+        match kind {
+            ThemeKind::Dark => Theme {
+                kind, bg: BLACK, fg: WHITE, dim: BLUE, accent: CYAN,
+                heading: YELLOW, code: GREEN, link: MAGENTA,
+                bar_fg: BLACK, bar_bg: CYAN, sel_fg: BLACK, sel_bg: YELLOW,
+                border: &SINGLE,
+            },
+            // White here is the terminal's light grey, which is exactly the
+            // DOS text-mode background everyone remembers.
+            ThemeKind::Dos => Theme {
+                kind, bg: WHITE, fg: BLACK, dim: BLUE, accent: BLUE,
+                heading: RED, code: MAGENTA, link: BLUE,
+                bar_fg: WHITE, bar_bg: BLUE, sel_fg: WHITE, sel_bg: BLUE,
+                border: &DOUBLE,
+            },
+        }
+    }
+
+    pub fn base(&self) -> Style {
+        Style { fg: self.fg, bg: self.bg, ..Default::default() }
+    }
+    pub fn on(&self, fg: u8) -> Style {
+        Style { fg, bg: self.bg, ..Default::default() }
+    }
+    pub fn strong(&self, fg: u8) -> Style {
+        Style { fg, bg: self.bg, bold: true, ..Default::default() }
+    }
+    pub fn bar(&self) -> Style {
+        Style { fg: self.bar_fg, bg: self.bar_bg, bold: true, ..Default::default() }
+    }
+    pub fn sel(&self) -> Style {
+        Style { fg: self.sel_fg, bg: self.sel_bg, bold: true, ..Default::default() }
+    }
+}
+
+impl Screen {
+    pub fn clear_to(&mut self, style: Style) {
+        for c in self.cells.iter_mut() {
+            *c = Cell { ch: ' ', style };
+        }
+    }
+
+    /// Frame with an optional title in the top edge.
+    pub fn frame(&mut self, x: usize, y: usize, w: usize, h: usize, b: &Border, style: Style, title: Option<(&str, Style)>) {
+        if w < 2 || h < 2 {
+            return;
+        }
+        let (x2, y2) = (x + w - 1, y + h - 1);
+        self.put(x, y, b.tl, style);
+        self.put(x2, y, b.tr, style);
+        self.put(x, y2, b.bl, style);
+        self.put(x2, y2, b.br, style);
+        for i in x + 1..x2 {
+            self.put(i, y, b.h, style);
+            self.put(i, y2, b.h, style);
+        }
+        for j in y + 1..y2 {
+            self.put(x, j, b.v, style);
+            self.put(x2, j, b.v, style);
+        }
+        if let Some((t, ts)) = title {
+            let t = format!(" {t} ");
+            if t.chars().count() + 2 < w {
+                self.text(x + 2, y, &t, ts);
+            }
+        }
+    }
+}

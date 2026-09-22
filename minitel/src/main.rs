@@ -111,6 +111,7 @@ impl russh::server::Server for Server {
             cache: self.cache.clone(),
             app: Arc::new(Mutex::new(None)),
             size: Arc::new(Mutex::new((80, 24))),
+            pending: Arc::new(Mutex::new(Vec::new())),
             pty: Arc::new(AtomicBool::new(false)),
             generation: Arc::new(AtomicU64::new(0)),
             skip: Arc::new(AtomicBool::new(false)),
@@ -129,6 +130,8 @@ struct Client {
     cache: Arc<FeedCache>,
     app: Arc<Mutex<Option<App>>>,
     size: Arc<Mutex<(usize, usize)>>,
+    /// Bytes of a half-delivered escape sequence, waiting for the rest.
+    pending: Arc<Mutex<Vec<u8>>>,
     pty: Arc<AtomicBool>,
     generation: Arc<AtomicU64>,
     skip: Arc<AtomicBool>,
@@ -144,9 +147,9 @@ impl Client {
                 None => return,
             }
         };
-        let fast = {
+        let slow = {
             let guard = self.app.lock().await;
-            guard.as_ref().map(|a| a.fast).unwrap_or(false)
+            guard.as_ref().map(|a| a.slow).unwrap_or(false)
         };
 
         let gen = self.generation.fetch_add(1, Ordering::SeqCst) + 1;
@@ -173,7 +176,7 @@ impl Client {
                 for ch in text.chars() {
                     buf.push(ch);
                     pending += 1;
-                    if pending >= CHUNK && !fast && !skip.load(Ordering::Relaxed) {
+                    if pending >= CHUNK && slow && !skip.load(Ordering::Relaxed) {
                         if generation.load(Ordering::SeqCst) != gen {
                             return; // a newer paint took over
                         }
@@ -309,7 +312,14 @@ impl Handler for Client {
         data: &[u8],
         session: &mut Session,
     ) -> Result<(), Self::Error> {
-        let keys = decode(data);
+        let keys = {
+            let mut pend = self.pending.lock().await;
+            let mut buf = std::mem::take(&mut *pend);
+            buf.extend_from_slice(data);
+            let (keys, leftover) = decode(&buf);
+            *pend = leftover;
+            keys
+        };
         if keys.is_empty() {
             return Ok(());
         }
@@ -336,13 +346,31 @@ impl Handler for Client {
 
         if quit {
             let bye = format!(
-                "{RESET}{SHOW_CURSOR}\r\n  au revoir — https://marlinski.org\r\n\r\n"
+                "{RESET}{SHOW_CURSOR}\r\n  goodbye — https://marlinski.org\r\n\r\n"
             );
             let _ = session.data(channel, bye.into_bytes());
             session.close(channel)?;
             return Ok(());
         }
         if dirty {
+            self.repaint(session.handle(), channel).await;
+        }
+
+        // A README was requested. Paint first so the "fetching" line shows,
+        // then fetch and repaint — the alternative is a frozen screen for the
+        // length of an HTTP round trip.
+        let want = {
+            let mut guard = self.app.lock().await;
+            guard.as_mut().and_then(|a| a.want_readme.take())
+        };
+        if let Some((_idx, urls)) = want {
+            let md = self.cache.readme(&urls).await;
+            {
+                let mut guard = self.app.lock().await;
+                if let Some(a) = guard.as_mut() {
+                    a.set_readme(md);
+                }
+            }
             self.repaint(session.handle(), channel).await;
         }
         Ok(())

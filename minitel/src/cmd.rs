@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use crate::feed::{post_text, Feed};
+use crate::feed::{post_lines, Feed};
 
 pub struct Out {
     lines: Vec<String>,
@@ -44,8 +44,8 @@ pub fn run(feed: &Arc<Feed>, cmdline: &str, color: bool, width: usize) -> String
     let mut o = Out::new(color);
 
     match verb.as_str() {
-        "blog" | "posts" | "articles" if arg.is_empty() => list_posts(feed, &mut o),
-        "blog" | "posts" | "articles" | "read" | "post" | "cat" => {
+        "blog" | "posts" | "writing" if arg.is_empty() => list_posts(feed, &mut o),
+        "blog" | "posts" | "writing" | "read" | "post" | "cat" => {
             match resolve(feed, arg) {
                 Some(i) => show_post(feed, i, &mut o, width),
                 None => {
@@ -55,8 +55,8 @@ pub fn run(feed: &Arc<Feed>, cmdline: &str, color: bool, width: usize) -> String
                 }
             }
         }
-        "projects" | "projets" | "proj" => list_projects(feed, &mut o),
-        "about" | "whoami" | "apropos" => about(feed, &mut o),
+        "projects" | "proj" => list_projects(feed, &mut o),
+        "about" | "whoami" => about(feed, &mut o),
         "now" => o.raw(feed.now.clone()),
         "feed" | "json" => o.raw("https://marlinski.org/minitel.json"),
         "help" | "-h" | "--help" | "?" => help(&mut o),
@@ -87,7 +87,7 @@ fn resolve(feed: &Arc<Feed>, arg: &str) -> Option<usize> {
 }
 
 fn list_posts(feed: &Arc<Feed>, o: &mut Out) {
-    o.c("1;33", "ARTICLES");
+    o.c("1;33", "WRITING");
     o.blank();
     for (i, p) in feed.posts.iter().enumerate() {
         o.raw(format!("  {:>2}  {}  {}", i + 1, p.date, p.title));
@@ -105,15 +105,20 @@ fn show_post(feed: &Arc<Feed>, idx: usize, o: &mut Out, width: usize) {
     let tags = p.tags.iter().map(|t| format!("#{t}")).collect::<Vec<_>>().join(" ");
     o.c("34", &format!("{}  {}", p.date, tags));
     o.blank();
-    for line in post_text(&p.html, width) {
-        o.raw(line);
+    // Exec output stays plain: the styling belongs to the interactive screen,
+    // and this is meant to survive a pipe.
+    // Exec output is flattened to plain text, so the theme here is irrelevant.
+    let th = crate::screen::Theme::get(crate::screen::ThemeKind::Dark);
+    for line in post_lines(&p.html, width, &th) {
+        let text: String = line.iter().map(|(t, _)| t.as_str()).collect();
+        o.raw(text.trim_end().to_string());
     }
     o.blank();
     o.c("35", &p.url);
 }
 
 fn list_projects(feed: &Arc<Feed>, o: &mut Out) {
-    o.c("1;33", "PROJETS");
+    o.c("1;33", "PROJECTS");
     o.blank();
     for p in &feed.projects {
         let mark = match p.status.as_str() {
@@ -129,7 +134,7 @@ fn list_projects(feed: &Arc<Feed>, o: &mut Out) {
         }
     }
     o.blank();
-    o.c("34", "  * actif   - dormant   o archive");
+    o.c("34", "  * active   - idle   o archived");
 }
 
 fn about(feed: &Arc<Feed>, o: &mut Out) {
@@ -145,18 +150,19 @@ fn about(feed: &Arc<Feed>, o: &mut Out) {
 }
 
 fn help(o: &mut Out) {
-    o.c("1;33", "MARLINSKI — ssh marlinski.org");
+    o.c("1;33", "3615 MARLINSKI");
+    o.c("34", "a Minitel for marlinski.org, served over SSH");
     o.blank();
-    o.raw("  ssh marlinski.org                 le Minitel, en interactif");
+    o.raw("  ssh marlinski.org                 the Minitel itself, interactive");
     o.blank();
-    o.c("1", "  commandes");
-    o.raw("  blog                              liste les articles");
-    o.raw("  blog <n|mot>                      lit un article");
-    o.raw("  projects                          liste les projets");
-    o.raw("  about                             qui, ou, quoi");
-    o.raw("  now                               ce que je fais en ce moment");
-    o.raw("  feed                              l'URL du flux JSON");
-    o.raw("  help                              cet ecran");
+    o.c("1", "  commands");
+    o.raw("  blog                              list the posts");
+    o.raw("  blog <n|word>                     read one, by number or title");
+    o.raw("  projects                          list the projects");
+    o.raw("  about                             who, where, what");
+    o.raw("  now                               what I am working on");
+    o.raw("  feed                              the JSON feed this reads");
+    o.raw("  help                              this screen");
     o.blank();
-    o.c("34", "  ssh -t marlinski.org blog       pour la couleur");
+    o.c("34", "  ssh -t marlinski.org blog         add -t for colour");
 }
