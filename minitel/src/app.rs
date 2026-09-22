@@ -728,36 +728,6 @@ impl App {
             s.text(x + 1, ly, &label, st);
             ly += 1;
         }
-
-        // A little more life than an empty box: the place, in numbers.
-        ly += 1;
-        for i in x + 1..x + w.saturating_sub(1) {
-            s.put(i, ly, th.border.h, th.on(th.dim));
-        }
-        ly += 1;
-        let active = self.feed.projects.iter().filter(|p| p.status == "active").count();
-        for (k, v) in [
-            ("posts", format!("{}", self.feed.posts.len())),
-            ("projects", format!("{}", self.feed.projects.len())),
-            ("active", format!("{active}")),
-        ] {
-            if ly >= y + h - 1 {
-                break;
-            }
-            s.text(x + 2, ly, k, th.on(th.dim));
-            let vx = x + w - 2 - v.chars().count();
-            s.text(vx, ly, &v, th.strong(th.accent));
-            ly += 1;
-        }
-
-        ly += 1;
-        for l in wrap(&self.feed.now, w.saturating_sub(4)) {
-            if ly >= y + h - 1 {
-                break;
-            }
-            s.text(x + 2, ly, &l, th.on(th.code));
-            ly += 1;
-        }
     }
 
     fn list_pane(&self, s: &mut Screen, th: &Theme, x: usize, y: usize, w: usize, h: usize) {
