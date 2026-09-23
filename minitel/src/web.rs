@@ -14,7 +14,7 @@ const PAGE: &str = r#"<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>minitel.marlinski.org</title>
+<title>3615.marlinski.org</title>
 <meta name="description" content="marlinski.org, served over SSH as a Minitel.">
 <style>
   :root {
@@ -61,7 +61,7 @@ const PAGE: &str = r#"<!doctype html>
   <h1>3615 marlinski</h1>
 
   <div class="box">
-    <span class="prompt">$</span><span class="cmd">ssh minitel.marlinski.org</span><span class="caret">&#9612;</span>
+    <span class="prompt">$</span><span class="cmd">ssh 3615.marlinski.org</span><span class="caret">&#9612;</span>
   </div>
 
   <p><a href="https://marlinski.org">&larr; marlinski.org</a></p>

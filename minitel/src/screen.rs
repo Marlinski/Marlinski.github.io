@@ -70,8 +70,15 @@ impl Screen {
         Screen { w, h, cells: vec![Cell::default(); w * h] }
     }
 
+    /// Nothing painted here is ever a control character, so anything that
+    /// looks like one is text from somewhere else wearing a disguise: a
+    /// README, a feed, a name a visitor chose. Left alone it would reach the
+    /// reader's terminal as an escape sequence rather than as writing, which
+    /// is a way to set their title, rewrite the screen, or load their
+    /// clipboard for the next time they paste. It gets a visible mark instead.
     pub fn put(&mut self, x: usize, y: usize, ch: char, style: Style) {
         if x < self.w && y < self.h {
+            let ch = if ch.is_control() { '\u{fffd}' } else { ch };
             self.cells[y * self.w + x] = Cell { ch, style };
         }
     }

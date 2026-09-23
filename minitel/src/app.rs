@@ -54,7 +54,7 @@ pub struct App {
     pub theme: ThemeKind,
     /// True when the connecting key matched MINITEL_ADMIN_KEY.
     pub admin: bool,
-    /// Whatever name they used: ssh alice@minitel.marlinski.org
+    /// Whatever name they used: ssh alice@3615.marlinski.org
     pub user: String,
     pub compose: String,
     pub email: String,
@@ -67,6 +67,9 @@ pub struct App {
     pub want_delete: Option<i64>,
     pub inbox: Vec<Message>,
     pub want_send: Option<String>,
+    /// Messages left during this connection. The mailbox is open to anyone,
+    /// which also means anyone can write to it in a loop.
+    pub sent: usize,
     pub want_inbox: bool,
     pub want_mark_read: Option<i64>,
     pub quit: bool,
@@ -100,6 +103,7 @@ impl App {
             want_delete: None,
             inbox: Vec::new(),
             want_send: None,
+            sent: 0,
             want_inbox: false,
             want_mark_read: None,
             quit: false,
@@ -350,7 +354,7 @@ impl App {
                     for (k, v) in [
                         ("web", "https://marlinski.org"),
                         ("code", "https://github.com/Marlinski"),
-                        ("ssh", "ssh minitel.marlinski.org"),
+                        ("ssh", "ssh 3615.marlinski.org"),
                     ] {
                         b.push(vec![
                             (format!("{k:<6}"), th.on(th.dim)),
@@ -591,7 +595,10 @@ impl App {
                             self.field = 0;
                         } else if body.is_empty() {
                             self.notice = Some("nothing to send".into());
+                        } else if self.sent >= 5 {
+                            self.notice = Some("that is enough for one visit".into());
                         } else {
+                            self.sent += 1;
                             self.want_send = Some(body);
                             self.compose.clear();
                             self.notice = Some("sent — thank you".into());

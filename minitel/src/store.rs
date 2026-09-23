@@ -9,6 +9,10 @@ use std::sync::{Arc, Mutex};
 
 use rusqlite::{params, Connection};
 
+/// Roughly 15MB of messages on a 100MB volume. The mailbox filling up should
+/// be something the owner notices, not something a script decides.
+const MAX_MESSAGES: i64 = 20_000;
+
 #[derive(Debug, Clone)]
 pub struct Message {
     pub id: i64,
@@ -68,6 +72,10 @@ impl Store {
         let conn = self.conn.clone();
         tokio::task::spawn_blocking(move || -> anyhow::Result<()> {
             let c = conn.lock().unwrap();
+            let n: i64 = c.query_row("SELECT COUNT(*) FROM messages", [], |r| r.get(0))?;
+            if n >= MAX_MESSAGES {
+                anyhow::bail!("mailbox full");
+            }
             c.execute(
                 "INSERT INTO messages (who, email, pubkey, ip, body, at)
                  VALUES (?1, ?2, ?3, ?4, ?5, datetime('now'))",

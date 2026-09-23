@@ -166,6 +166,18 @@ async fn load_or_create_host_key(path: &str) -> anyhow::Result<PrivateKey> {
     }
 }
 
+/// Strips a visitor-supplied name down to something safe to print.
+///
+/// The username arrives from the client and is stored, logged and shown in
+/// the inbox. OpenSSH's own client refuses to send a name containing control
+/// characters, but the protocol allows it and a hand-written client will:
+/// left as-is, `ssh $'\e]0;...'@host` puts an escape sequence in the owner's
+/// terminal the next time they read their mail. Length is capped for the same
+/// reason a field is — it is displayed, not parsed.
+fn clean_name(user: &str) -> String {
+    user.chars().filter(|c| !c.is_control()).take(64).collect()
+}
+
 /// Reduces an authorized_keys line to the comparable key material.
 fn parse_admin_key(line: &str) -> Option<russh::keys::ssh_key::PublicKey> {
     let line = line.trim();
@@ -412,7 +424,7 @@ impl Handler for Client {
     /// is rejected asking for publickey; if the visitor has no key their client
     /// comes back to `none` and is let in.
     async fn auth_none(&mut self, user: &str) -> Result<Auth, Self::Error> {
-        *self.user.lock().await = user.to_string();
+        *self.user.lock().await = clean_name(user);
         // OpenSSH will not retry a method it has already failed, so the fallback
         // cannot be `none` again: it is keyboard-interactive, answered with zero
         // prompts, which the client completes without asking the visitor
@@ -433,14 +445,14 @@ impl Handler for Client {
         user: &str,
         key: &russh::keys::ssh_key::PublicKey,
     ) -> Result<Auth, Self::Error> {
-        *self.user.lock().await = user.to_string();
+        *self.user.lock().await = clean_name(user);
         if let Ok(line) = key.to_openssh() {
             *self.pubkey.lock().await = line;
         }
         if let Some(admin) = &self.admin_key {
             if key.key_data() == admin.key_data() {
                 self.admin.store(true, Ordering::SeqCst);
-                eprintln!("minitel: owner connected as {user}");
+                eprintln!("minitel: owner connected as {}", clean_name(user));
             }
         }
         Ok(Auth::Accept)
@@ -453,12 +465,12 @@ impl Handler for Client {
         _submethods: &str,
         _response: Option<russh::server::Response<'_>>,
     ) -> Result<Auth, Self::Error> {
-        *self.user.lock().await = user.to_string();
+        *self.user.lock().await = clean_name(user);
         Ok(Auth::Accept)
     }
 
     async fn auth_password(&mut self, user: &str, _pw: &str) -> Result<Auth, Self::Error> {
-        *self.user.lock().await = user.to_string();
+        *self.user.lock().await = clean_name(user);
         Ok(Auth::Accept)
     }
 

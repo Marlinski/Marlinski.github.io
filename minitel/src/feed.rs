@@ -134,7 +134,7 @@ impl FeedCache {
     pub fn new(url: String, ttl: Duration) -> Self {
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(10))
-            .user_agent("minitel.marlinski.org")
+            .user_agent("3615.marlinski.org")
             .build()
             .expect("http client");
         FeedCache {

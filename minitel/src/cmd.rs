@@ -96,7 +96,7 @@ fn list_posts(feed: &Arc<Feed>, o: &mut Out) {
         }
     }
     o.blank();
-    o.c("34", "  ssh minitel.marlinski.org blog <n>   to read one");
+    o.c("34", "  ssh 3615.marlinski.org blog <n>   to read one");
 }
 
 fn show_post(feed: &Arc<Feed>, idx: usize, o: &mut Out, width: usize) {
@@ -153,7 +153,7 @@ fn help(o: &mut Out) {
     o.c("1;33", "3615 MARLINSKI");
     o.c("34", "a Minitel for marlinski.org, served over SSH");
     o.blank();
-    o.raw("  ssh minitel.marlinski.org         the Minitel itself, interactive");
+    o.raw("  ssh 3615.marlinski.org         the Minitel itself, interactive");
     o.blank();
     o.c("1", "  commands");
     o.raw("  blog                              list the posts");
@@ -164,5 +164,5 @@ fn help(o: &mut Out) {
     o.raw("  feed                              the JSON feed this reads");
     o.raw("  help                              this screen");
     o.blank();
-    o.c("34", "  ssh -t minitel.marlinski.org blog  add -t for colour");
+    o.c("34", "  ssh -t 3615.marlinski.org blog  add -t for colour");
 }
