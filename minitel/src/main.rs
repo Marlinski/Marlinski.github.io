@@ -9,6 +9,7 @@
 mod app;
 mod cmd;
 mod feed;
+mod portrait;
 mod proxy;
 mod screen;
 mod store;
@@ -522,6 +523,7 @@ impl Handler for Client {
         app.admin = self.admin.load(Ordering::SeqCst);
         app.user = self.user.lock().await.clone();
         app.pubkey = self.pubkey.lock().await.clone();
+        app.set_portrait(self.cache.portrait().await);
         *self.app.lock().await = Some(app);
         self.repaint(session.handle(), channel).await;
         Ok(())

@@ -85,6 +85,9 @@ pub struct Feed {
     pub title: String,
     pub tagline: String,
     pub now: String,
+    /// The photo from the website, rendered as dots in the ABOUT pane.
+    #[serde(default)]
+    pub avatar: String,
     pub projects: Vec<Project>,
     pub posts: Vec<Post>,
     #[serde(default)]
@@ -99,6 +102,7 @@ impl Feed {
             title: "MARLINSKI".into(),
             tagline: "service temporarily unavailable".into(),
             now: String::new(),
+            avatar: String::new(),
             projects: Vec::new(),
             posts: Vec::new(),
             public: Vec::new(),
@@ -127,6 +131,9 @@ pub struct FeedCache {
     ttl: Duration,
     inner: RwLock<(Arc<Feed>, Option<Instant>)>,
     readmes: RwLock<std::collections::HashMap<String, Option<String>>>,
+    /// Decoded once and kept: the picture is redrawn per pane width, but it
+    /// is only ever fetched and decoded a single time.
+    portrait: RwLock<Option<Option<Arc<image::GrayImage>>>>,
     client: reqwest::Client,
 }
 
@@ -142,6 +149,7 @@ impl FeedCache {
             ttl,
             inner: RwLock::new((Arc::new(Feed::unavailable()), None)),
             readmes: RwLock::new(std::collections::HashMap::new()),
+            portrait: RwLock::new(None),
             client,
         }
     }
@@ -197,6 +205,37 @@ impl FeedCache {
             }
         }
         self.readmes.write().await.insert(key, got.clone());
+        got
+    }
+
+    /// The site's avatar, decoded to grayscale. None when there is no avatar
+    /// in the feed, or the fetch or decode failed.
+    pub async fn portrait(&self) -> Option<Arc<image::GrayImage>> {
+        if let Some(hit) = self.portrait.read().await.as_ref() {
+            return hit.clone();
+        }
+        let url = self.get().await.avatar.clone();
+        let got = match url.is_empty() {
+            true => None,
+            false => match self.client.get(&url).send().await {
+                Ok(r) if r.status().is_success() => match r.bytes().await {
+                    // Decoding is cheap but not free, and this runs on the
+                    // reactor; a few hundred microseconds is still the wrong
+                    // place for it.
+                    Ok(b) => tokio::task::spawn_blocking(move || crate::portrait::decode(&b))
+                        .await
+                        .ok()
+                        .flatten()
+                        .map(Arc::new),
+                    Err(_) => None,
+                },
+                _ => None,
+            },
+        };
+        if got.is_none() && !url.is_empty() {
+            eprintln!("minitel: could not read the avatar at {url}");
+        }
+        *self.portrait.write().await = Some(got.clone());
         got
     }
 

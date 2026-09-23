@@ -67,6 +67,8 @@ pub struct App {
     pub want_delete: Option<i64>,
     pub inbox: Vec<Message>,
     pub want_send: Option<String>,
+    /// The site's photo, drawn as dots at the top of ABOUT.
+    pub portrait: Option<std::sync::Arc<image::GrayImage>>,
     /// Messages left during this connection. The mailbox is open to anyone,
     /// which also means anyone can write to it in a loop.
     pub sent: usize,
@@ -103,6 +105,7 @@ impl App {
             want_delete: None,
             inbox: Vec::new(),
             want_send: None,
+            portrait: None,
             sent: 0,
             want_inbox: false,
             want_mark_read: None,
@@ -340,6 +343,16 @@ impl App {
                     self.body_key = key;
                     self.scroll = 0;
                     let mut b: Vec<Vec<Span>> = Vec::new();
+                    if let Some(img) = &self.portrait {
+                        // Two thirds of the pane, so it stays a portrait and
+                        // not a wall, and centred on whatever is left.
+                        let lines = crate::portrait::dots(img, w * 2 / 3);
+                        let indent = " ".repeat(w.saturating_sub(lines[0].chars().count()) / 2);
+                        for l in lines {
+                            b.push(vec![(format!("{indent}{l}"), th.on(th.fg))]);
+                        }
+                        b.push(vec![(String::new(), th.base())]);
+                    }
                     for l in wrap(&self.feed.tagline, w) {
                         b.push(vec![(l, th.base())]);
                     }
@@ -641,6 +654,14 @@ impl App {
             self.sync_body();
         }
         dirty
+    }
+
+    /// The photo arrives after the App is built, and the ABOUT pane has
+    /// already been laid out by then — so the cached body has to go with it.
+    pub fn set_portrait(&mut self, p: Option<std::sync::Arc<image::GrayImage>>) {
+        self.portrait = p;
+        self.body_key.clear();
+        self.sync_body();
     }
 
     pub fn resize(&mut self, w: usize, h: usize) {

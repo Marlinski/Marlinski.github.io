@@ -15,6 +15,8 @@ anyhow = "1"
 rand = "0.10"
 pulldown-cmark = { version = "0.13.4", default-features = false, features = ["html"] }
 rusqlite = { version = "0.40.2", features = ["bundled"] }
+# Only to read the site's avatar; no encoders, no other formats.
+image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
 
 [profile.release]
 opt-level = "z"

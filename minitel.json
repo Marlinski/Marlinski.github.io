@@ -13,6 +13,7 @@ the new content on its next refresh, with no redeploy.
   "title": {{ site.title | jsonify }},
   "tagline": {{ site.description | jsonify }},
   "now": {{ site.now | strip_html | jsonify }},
+  "avatar": {{ site.logo | absolute_url | jsonify }},
   "projects": [
 {%- for p in site.data.projects %}
     {
