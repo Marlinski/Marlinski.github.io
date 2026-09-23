@@ -231,6 +231,7 @@ impl russh::server::Server for Server {
             pty: Arc::new(AtomicBool::new(false)),
             generation: Arc::new(AtomicU64::new(0)),
             skip: Arc::new(AtomicBool::new(false)),
+            paint: Arc::new(Mutex::new(())),
         }
     }
     fn handle_session_error(&mut self, error: russh::Error) {
@@ -257,6 +258,9 @@ struct Client {
     pty: Arc<AtomicBool>,
     generation: Arc<AtomicU64>,
     skip: Arc<AtomicBool>,
+    /// Held for the length of a paint, so two of them cannot interleave on
+    /// the wire. See `repaint`.
+    paint: Arc<Mutex<()>>,
 }
 
 impl Client {
@@ -278,8 +282,24 @@ impl Client {
         self.skip.store(false, Ordering::SeqCst);
         let generation = self.generation.clone();
         let skip = self.skip.clone();
+        let paint = self.paint.clone();
 
         tokio::spawn(async move {
+            // Two things matter here, and the screen goes blank without
+            // either. Paints are serialised, because a task that starts
+            // second can still reach the socket first. And a paint that has
+            // already been overtaken writes nothing at all — it used to
+            // clear the screen before noticing, so the loser's CLEAR landed
+            // on top of the winner's finished frame and stayed there until
+            // the next keystroke.
+            //
+            // Selecting PROJECTS is what found this: it is the one section
+            // that queues a second paint immediately, for the README, so
+            // with the README already cached the two go out together.
+            let _hold = paint.lock().await;
+            if generation.load(Ordering::SeqCst) != gen {
+                return;
+            }
             let mut out = String::from(CLEAR);
             out.push_str(HIDE_CURSOR);
             if handle
