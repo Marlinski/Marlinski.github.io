@@ -129,32 +129,106 @@ fn keep_subject(ink: &mut [bool], w: usize, h: usize) {
     }
 }
 
+/// Spreads the subject's tones across the full range before dithering.
+///
+/// A face lit from the side is dark almost everywhere — here it occupies
+/// roughly the bottom two thirds of the scale — so dithering it directly
+/// makes one flat black mass. Stretching first turns that narrow band into
+/// actual light and shade. Percentiles rather than the outright darkest and
+/// lightest pixel, so a single blown highlight cannot flatten everything else
+/// back down, and measured only inside the subject, because the water behind
+/// it is not what we are exposing for.
+fn stretch(gray: &[u8], mask: &[bool]) -> Vec<u8> {
+    let mut vals: Vec<u8> = gray.iter().zip(mask).filter(|(_, m)| **m).map(|(g, _)| *g).collect();
+    if vals.is_empty() {
+        return gray.to_vec();
+    }
+    vals.sort_unstable();
+    let lo = vals[vals.len() * 2 / 100] as f32;
+    let hi = vals[(vals.len() * 98 / 100).min(vals.len() - 1)] as f32;
+    let span = (hi - lo).max(1.0);
+    gray.iter()
+        .map(|g| (((*g as f32 - lo) / span) * 255.0).clamp(0.0, 255.0) as u8)
+        .collect()
+}
+
+/// Atkinson dithering, inside the subject only.
+///
+/// Error diffusion turns shades into densities of dots, which is the only way
+/// a two-colour picture shows a cheekbone. Atkinson's, from the early
+/// Macintosh, passes on just six eighths of each pixel's error rather than
+/// all of it: highlights stay clean and shadows stay solid instead of
+/// everything drifting to a speckled middle grey. Floyd-Steinberg keeps all
+/// the error and, on this photograph, reads as noise rather than as a face.
+///
+/// The error stays inside the mask, so the clean outline survives the
+/// texture: nothing leaks into the water.
+fn atkinson(tone: &[u8], mask: &[bool], w: usize, h: usize) -> Vec<bool> {
+    let mut buf: Vec<f32> = tone.iter().map(|v| *v as f32).collect();
+    let mut ink = vec![false; w * h];
+    const SPREAD: [(i32, i32); 6] = [(1, 0), (2, 0), (-1, 1), (0, 1), (1, 1), (0, 2)];
+
+    for y in 0..h {
+        for x in 0..w {
+            let i = y * w + x;
+            if !mask[i] {
+                continue;
+            }
+            let old = buf[i];
+            let dark = old < 128.0;
+            ink[i] = dark;
+            let err = (old - if dark { 0.0 } else { 255.0 }) / 8.0;
+            for (dx, dy) in SPREAD {
+                let (nx, ny) = (x as i32 + dx, y as i32 + dy);
+                if nx < 0 || ny < 0 || nx >= w as i32 || ny >= h as i32 {
+                    continue;
+                }
+                let n = ny as usize * w + nx as usize;
+                if mask[n] {
+                    buf[n] += err;
+                }
+            }
+        }
+    }
+    ink
+}
+
 /// Renders the image as braille, `cells` characters wide.
 ///
 /// A braille cell is 2 dots across and 4 down, while a terminal character is
 /// about twice as tall as it is wide — so the dots come out square, and a
 /// square picture needs half as many rows as columns.
 pub fn dots(img: &GrayImage, cells: usize) -> Vec<String> {
-    let cells = cells.clamp(12, 40);
+    // Detail needs pixels: a dithered face at 40 cells is a smudge, and each
+    // cell buys two dots across and four down.
+    let cells = cells.clamp(12, 48);
     let px_w = (cells * 2) as u32;
     // Keep the photo's own proportions rather than assuming it is square.
     let px_h = ((px_w as f64) * img.height() as f64 / img.width() as f64 / 4.0).round() as u32 * 4;
     let px_h = px_h.max(4);
 
     let small = image::imageops::resize(img, px_w, px_h, image::imageops::FilterType::Lanczos3);
-    let small = median3(&small);
-    let t = otsu(&small);
-
-    // Dark pixels are the ink: the subject is darker than the water behind
-    // it, and the water should stay empty.
     let (w, h) = (px_w as usize, px_h as usize);
-    let mut ink = vec![false; w * h];
+
+    // Two passes over the same photograph. The median'd copy decides where
+    // the subject is — a clean silhouette, free of the speckle the water
+    // leaves behind. The original decides what is inside it, because the
+    // median would have smoothed away the very detail we are after.
+    let smoothed = median3(&small);
+    let t = otsu(&smoothed);
+    let mut mask = vec![false; w * h];
     for y in 0..h {
         for x in 0..w {
-            ink[y * w + x] = small.get_pixel(x as u32, y as u32).0[0] < t;
+            // Dark pixels are the subject: it is darker than the water.
+            mask[y * w + x] = smoothed.get_pixel(x as u32, y as u32).0[0] < t;
         }
     }
-    keep_subject(&mut ink, w, h);
+    keep_subject(&mut mask, w, h);
+
+    let gray: Vec<u8> = (0..w * h)
+        .map(|i| small.get_pixel((i % w) as u32, (i / w) as u32).0[0])
+        .collect();
+    let ink = atkinson(&stretch(&gray, &mask), &mask, w, h);
 
     let mut out = Vec::new();
     for cy in (0..h).step_by(4) {

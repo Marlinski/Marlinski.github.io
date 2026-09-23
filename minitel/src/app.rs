@@ -344,9 +344,9 @@ impl App {
                     self.scroll = 0;
                     let mut b: Vec<Vec<Span>> = Vec::new();
                     if let Some(img) = &self.portrait {
-                        // Two thirds of the pane, so it stays a portrait and
-                        // not a wall, and centred on whatever is left.
-                        let lines = crate::portrait::dots(img, w * 2 / 3);
+                        // As much of the pane as it will take, capped inside
+                        // dots(): the texture needs the resolution.
+                        let lines = crate::portrait::dots(img, w.saturating_sub(2));
                         let indent = " ".repeat(w.saturating_sub(lines[0].chars().count()) / 2);
                         for l in lines {
                             b.push(vec![(format!("{indent}{l}"), th.on(th.fg))]);
