@@ -131,6 +131,7 @@ pub struct FeedCache {
     ttl: Duration,
     inner: RwLock<(Arc<Feed>, Option<Instant>)>,
     readmes: RwLock<std::collections::HashMap<String, Option<String>>>,
+    metrics: Arc<crate::metrics::Metrics>,
     /// Decoded once and kept: the picture is redrawn per pane width, but it
     /// is only ever fetched and decoded a single time.
     portrait: RwLock<Option<Option<Arc<image::GrayImage>>>>,
@@ -138,7 +139,7 @@ pub struct FeedCache {
 }
 
 impl FeedCache {
-    pub fn new(url: String, ttl: Duration) -> Self {
+    pub fn new(url: String, ttl: Duration, metrics: Arc<crate::metrics::Metrics>) -> Self {
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(10))
             .user_agent("3615.marlinski.org")
@@ -149,6 +150,7 @@ impl FeedCache {
             ttl,
             inner: RwLock::new((Arc::new(Feed::unavailable()), None)),
             readmes: RwLock::new(std::collections::HashMap::new()),
+            metrics,
             portrait: RwLock::new(None),
             client,
         }
@@ -175,6 +177,7 @@ impl FeedCache {
             }
             Err(e) => {
                 eprintln!("minitel: feed refresh failed: {e}");
+                self.metrics.feed_fail.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 let mut guard = self.inner.write().await;
                 // Back off, so a broken upstream is not hammered once per session.
                 if guard.1.is_some() {
@@ -204,6 +207,11 @@ impl FeedCache {
                 }
             }
         }
+        use std::sync::atomic::Ordering;
+        match got.is_some() {
+            true => self.metrics.readme_ok.fetch_add(1, Ordering::Relaxed),
+            false => self.metrics.readme_fail.fetch_add(1, Ordering::Relaxed),
+        };
         self.readmes.write().await.insert(key, got.clone());
         got
     }

@@ -69,7 +69,7 @@ const PAGE: &str = r#"<!doctype html>
 </html>
 "#;
 
-pub async fn serve(port: u16) {
+pub async fn serve(port: u16, metrics: std::sync::Arc<crate::metrics::Metrics>, store: crate::store::Store) {
     let listener = match TcpListener::bind(("0.0.0.0", port)).await {
         Ok(l) => l,
         Err(e) => {
@@ -83,6 +83,8 @@ pub async fn serve(port: u16) {
         let Ok((mut sock, _)) = listener.accept().await else {
             continue;
         };
+        let metrics = metrics.clone();
+        let store = store.clone();
         tokio::spawn(async move {
             // One small read is enough: everything here answers the same way,
             // so the request only has to be recognised, not parsed.
@@ -94,9 +96,16 @@ pub async fn serve(port: u16) {
             let req = String::from_utf8_lossy(&buf[..n]);
             let head = req.starts_with("HEAD ");
             let health = req.starts_with("GET /healthz");
+            // Prometheus scrapes this from inside the cluster; the port is
+            // not published, so the route needs no guard of its own.
+            let scrape = req.starts_with("GET /metrics");
 
+            let rendered;
             let (status, ctype, body) = if health {
                 ("200 OK", "text/plain; charset=utf-8", "ok\n")
+            } else if scrape {
+                rendered = metrics.render(store.count().await);
+                ("200 OK", "text/plain; version=0.0.4; charset=utf-8", rendered.as_str())
             } else {
                 ("200 OK", "text/html; charset=utf-8", PAGE)
             };
@@ -105,9 +114,11 @@ pub async fn serve(port: u16) {
                 "HTTP/1.1 {status}\r\n\
                  Content-Type: {ctype}\r\n\
                  Content-Length: {}\r\n\
-                 Cache-Control: public, max-age=300\r\n\
+                 Cache-Control: {cache}\r\n\
                  Connection: close\r\n\r\n",
-                body.len()
+                body.len(),
+                // A scrape must never be answered from a cache.
+                cache = if scrape { "no-store" } else { "public, max-age=300" }
             );
             let _ = sock.write_all(headers.as_bytes()).await;
             if !head {

@@ -9,6 +9,7 @@
 mod app;
 mod cmd;
 mod feed;
+mod metrics;
 mod portrait;
 mod proxy;
 mod screen;
@@ -27,6 +28,7 @@ use tokio::sync::Mutex;
 
 use app::{decode, App};
 use feed::FeedCache;
+use metrics::Metrics;
 use store::Store;
 use screen::*;
 
@@ -53,7 +55,12 @@ async fn main() -> anyhow::Result<()> {
     // volume means the fingerprint is the same wherever this runs.
     let key_pem = std::env::var("MINITEL_HOST_KEY_PEM").ok().filter(|v| !v.trim().is_empty());
 
-    let cache = Arc::new(FeedCache::new(feed_url.clone(), Duration::from_secs(300)));
+    let metrics = Arc::new(Metrics::default());
+    let cache = Arc::new(FeedCache::new(
+        feed_url.clone(),
+        Duration::from_secs(300),
+        metrics.clone(),
+    ));
     // Warm the cache so the first visitor does not wait on an HTTP round trip.
     let _ = cache.get().await;
 
@@ -91,7 +98,7 @@ async fn main() -> anyhow::Result<()> {
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(8080);
-    tokio::spawn(web::serve(http_port));
+    tokio::spawn(web::serve(http_port, metrics.clone(), store.clone()));
 
     // Set when the router in front of this pod speaks PROXY protocol. Without
     // it every visitor's address is the router's own, which is worth recording
@@ -100,7 +107,12 @@ async fn main() -> anyhow::Result<()> {
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(false);
 
-    let mut server = Server { cache, store, admin_key: admin_key.map(Arc::new) };
+    let mut server = Server {
+        cache: cache.clone(),
+        store: store.clone(),
+        admin_key: admin_key.map(Arc::new),
+        metrics: metrics.clone(),
+    };
     let socket = TcpListener::bind(("0.0.0.0", port)).await?;
     eprintln!(
         "minitel: listening on 0.0.0.0:{port}, feed {feed_url}{}",
@@ -212,6 +224,7 @@ struct Server {
     cache: Arc<FeedCache>,
     store: Store,
     admin_key: Option<Arc<russh::keys::ssh_key::PublicKey>>,
+    metrics: Arc<Metrics>,
 }
 
 impl russh::server::Server for Server {
@@ -222,6 +235,8 @@ impl russh::server::Server for Server {
             cache: self.cache.clone(),
             store: self.store.clone(),
             admin_key: self.admin_key.clone(),
+            metrics: self.metrics.clone(),
+            counted: Arc::new(AtomicBool::new(false)),
             admin: Arc::new(AtomicBool::new(false)),
             user: Arc::new(Mutex::new(String::new())),
             pubkey: Arc::new(Mutex::new(String::new())),
@@ -247,6 +262,10 @@ struct Client {
     cache: Arc<FeedCache>,
     store: Store,
     admin_key: Option<Arc<russh::keys::ssh_key::PublicKey>>,
+    metrics: Arc<Metrics>,
+    /// Whether this session was added to the active gauge, so that dropping
+    /// it takes it back off exactly once.
+    counted: Arc<AtomicBool>,
     admin: Arc<AtomicBool>,
     user: Arc<Mutex<String>>,
     /// The key the visitor authenticated with, in authorized_keys form.
@@ -261,6 +280,16 @@ struct Client {
     /// Held for the length of a paint, so two of them cannot interleave on
     /// the wire. See `repaint`.
     paint: Arc<Mutex<()>>,
+}
+
+impl Drop for Client {
+    /// The only place a session reliably ends: a visitor may hang up, time
+    /// out, or quit, and all three land here.
+    fn drop(&mut self) {
+        if self.counted.load(Ordering::SeqCst) {
+            self.metrics.active.fetch_sub(1, Ordering::SeqCst);
+        }
+    }
 }
 
 impl Client {
@@ -388,8 +417,11 @@ impl Client {
             let who = self.user.lock().await.clone();
             let key = self.pubkey.lock().await.clone();
             let ip = self.peer.map(|a| a.ip().to_string()).unwrap_or_default();
-            if let Err(e) = self.store.add(who, email, key, ip, body).await {
-                eprintln!("minitel: could not save message: {e}");
+            match self.store.add(who, email, key, ip, body).await {
+                Ok(()) => {
+                    self.metrics.messages.fetch_add(1, Ordering::Relaxed);
+                }
+                Err(e) => eprintln!("minitel: could not save message: {e}"),
             }
         }
 
@@ -537,6 +569,12 @@ impl Handler for Client {
         channel: ChannelId,
         session: &mut Session,
     ) -> Result<(), Self::Error> {
+        self.metrics.shells.fetch_add(1, Ordering::Relaxed);
+        self.metrics.saw(self.peer.map(|a| a.ip()));
+        if !self.counted.swap(true, Ordering::SeqCst) {
+            self.metrics.active.fetch_add(1, Ordering::SeqCst);
+        }
+
         let (w, h) = *self.size.lock().await;
         let feed = self.cache.get().await;
         let mut app = App::new(feed, w, h);
@@ -557,6 +595,9 @@ impl Handler for Client {
         data: &[u8],
         session: &mut Session,
     ) -> Result<(), Self::Error> {
+        self.metrics.execs.fetch_add(1, Ordering::Relaxed);
+        self.metrics.saw(self.peer.map(|a| a.ip()));
+
         let line = String::from_utf8_lossy(data).to_string();
         let feed = self.cache.get().await;
         let color = self.pty.load(Ordering::SeqCst);

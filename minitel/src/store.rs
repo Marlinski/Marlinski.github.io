@@ -133,6 +133,19 @@ impl Store {
         .unwrap_or_default()
     }
 
+    /// Rows currently stored, for the mailbox gauge.
+    pub async fn count(&self) -> i64 {
+        let conn = self.conn.clone();
+        tokio::task::spawn_blocking(move || {
+            conn.lock()
+                .ok()
+                .and_then(|c| c.query_row("SELECT COUNT(*) FROM messages", [], |r| r.get(0)).ok())
+                .unwrap_or(0)
+        })
+        .await
+        .unwrap_or(0)
+    }
+
     pub async fn mark_read(&self, id: i64) {
         let conn = self.conn.clone();
         let _ = tokio::task::spawn_blocking(move || {
