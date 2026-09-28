@@ -293,6 +293,23 @@ impl Drop for Client {
 }
 
 impl Client {
+    /// One line per session, once its kind is known.
+    ///
+    /// The shape is fixed — kind, address, name, then whatever was asked for
+    /// — because Alloy reads these lines back, pulls the address out and
+    /// looks it up in the GeoIP database. Logged here rather than at channel
+    /// open so that a sweeper running `uname -a` is not indistinguishable
+    /// from someone reading a post.
+    async fn note(&self, kind: &str, detail: &str) {
+        let who = self.user.lock().await.clone();
+        println!(
+            "minitel: {kind} from {} as {}{} ({detail})",
+            self.peer.map(|a| a.ip().to_string()).unwrap_or_else(|| "unknown".into()),
+            if who.is_empty() { "-" } else { &who },
+            if self.admin.load(Ordering::SeqCst) { " (owner)" } else { "" },
+        );
+    }
+
     /// Repaints the screen, cancelling any paint still in flight.
     async fn repaint(&self, handle: russh::server::Handle, channel: ChannelId) {
         let screen = {
@@ -451,22 +468,12 @@ impl Client {
 impl Handler for Client {
     type Error = russh::Error;
 
-    /// One line per visitor who gets as far as opening a session. Logged here
-    /// rather than on accept, because the probes that keep this pod alive open
-    /// a TCP connection every few seconds and never say anything.
     async fn channel_open_session(
         &mut self,
         _channel: Channel<Msg>,
         reply: russh::server::ChannelOpenHandle,
         _session: &mut Session,
     ) -> Result<(), Self::Error> {
-        let who = self.user.lock().await.clone();
-        println!(
-            "minitel: session from {} as {}{}",
-            self.peer.map(|a| a.ip().to_string()).unwrap_or_else(|| "unknown".into()),
-            if who.is_empty() { "-" } else { &who },
-            if self.admin.load(Ordering::SeqCst) { " (owner)" } else { "" }
-        );
         reply.accept().await;
         Ok(())
     }
@@ -571,6 +578,7 @@ impl Handler for Client {
     ) -> Result<(), Self::Error> {
         self.metrics.shells.fetch_add(1, Ordering::Relaxed);
         self.metrics.saw(self.peer.map(|a| a.ip()));
+        self.note("shell", "interactive").await;
         if !self.counted.swap(true, Ordering::SeqCst) {
             self.metrics.active.fetch_add(1, Ordering::SeqCst);
         }
@@ -595,10 +603,18 @@ impl Handler for Client {
         data: &[u8],
         session: &mut Session,
     ) -> Result<(), Self::Error> {
-        self.metrics.execs.fetch_add(1, Ordering::Relaxed);
-        self.metrics.saw(self.peer.map(|a| a.ip()));
-
         let line = String::from_utf8_lossy(data).to_string();
+        if cmd::known(&line) {
+            self.metrics.execs.fetch_add(1, Ordering::Relaxed);
+            self.metrics.saw(self.peer.map(|a| a.ip()));
+            self.note("exec", line.trim()).await;
+        } else {
+            // Answered anyway, with the help screen: a sweeper gets the same
+            // courtesy as anyone else, it just is not counted as a reader.
+            self.metrics.probes.fetch_add(1, Ordering::Relaxed);
+            self.note("probe", line.trim()).await;
+        }
+
         let feed = self.cache.get().await;
         let color = self.pty.load(Ordering::SeqCst);
         let width = self.size.lock().await.0.clamp(40, 100);

@@ -37,6 +37,23 @@ impl Out {
     }
 }
 
+/// Whether the command line asks for something this service offers.
+///
+/// Port 22 on the open internet is swept continuously by people trying
+/// passwords, and they reach this too — they authenticate, because there is
+/// nothing to authenticate against, and then run `uname -a` or `sh` to see
+/// what they landed on. Those are not readers, and counting them as such
+/// would make every number here a measure of the internet's background noise
+/// rather than of anyone's interest.
+pub fn known(cmdline: &str) -> bool {
+    let verb = cmdline.split_whitespace().next().unwrap_or("").to_lowercase();
+    matches!(
+        verb.as_str(),
+        "blog" | "posts" | "writing" | "read" | "post" | "cat" | "projects" | "proj"
+            | "about" | "whoami" | "now" | "feed" | "json" | "help" | "-h" | "--help" | "?"
+    )
+}
+
 pub fn run(feed: &Arc<Feed>, cmdline: &str, color: bool, width: usize) -> String {
     let mut parts = cmdline.split_whitespace();
     let verb = parts.next().unwrap_or("help").to_lowercase();

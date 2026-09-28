@@ -20,6 +20,7 @@ const MAX_VISITORS: usize = 50_000;
 pub struct Metrics {
     pub shells: AtomicU64,
     pub execs: AtomicU64,
+    pub probes: AtomicU64,
     pub active: AtomicI64,
     pub messages: AtomicU64,
     pub readme_ok: AtomicU64,
@@ -40,6 +41,9 @@ struct Visitors {
 
 impl Metrics {
     /// Records a visitor, rolling the set over at UTC midnight.
+    ///
+    /// Only called for sessions that asked for something real, so the count
+    /// means people rather than scanners.
     pub fn saw(&self, ip: Option<IpAddr>) {
         let Some(ip) = ip else { return };
         let today = utc_date();
@@ -70,7 +74,9 @@ impl Metrics {
         let (today, yesterday) = self.visitor_counts();
         let mut s = String::new();
 
-        s.push_str("# HELP minitel_sessions_total SSH sessions served, by kind.\n");
+        s.push_str(
+            "# HELP minitel_sessions_total SSH sessions, by kind. A probe is a session that asked for something this service does not offer — the password sweepers that find any open port 22.\n",
+        );
         s.push_str("# TYPE minitel_sessions_total counter\n");
         s.push_str(&format!(
             "minitel_sessions_total{{kind=\"interactive\"}} {}\n",
@@ -79,6 +85,10 @@ impl Metrics {
         s.push_str(&format!(
             "minitel_sessions_total{{kind=\"exec\"}} {}\n",
             self.execs.load(Ordering::Relaxed)
+        ));
+        s.push_str(&format!(
+            "minitel_sessions_total{{kind=\"probe\"}} {}\n",
+            self.probes.load(Ordering::Relaxed)
         ));
 
         s.push_str("# HELP minitel_sessions_active Interactive sessions connected right now.\n");
