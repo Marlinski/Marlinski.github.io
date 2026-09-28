@@ -32,6 +32,15 @@ html, body {
   min-height: 100vh;
 }
 
+/* Selecting text picks up the site's one colour rather than the browser's
+   blue. The text goes to the page background, because --live is bright
+   enough that leaving it light would be unreadable against itself. */
+::selection {
+  background: var(--live);
+  color: var(--bg);
+  text-shadow: none;
+}
+
 a {
   color: var(--link);
   text-decoration: none;
