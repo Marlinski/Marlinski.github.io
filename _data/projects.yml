@@ -106,3 +106,12 @@
   status: idle
   shot: /images/projects/symbiosis.jpg
   alt: Three Symbiosis pieces in the gallery
+
+- name: france.ai
+  url: https://france.marlinski.org
+  gh: https://github.com/Marlinski/france.ai
+  blurb: Ask about French public services in plain language, answered from official open data.
+  tags: [ai, agents, web]
+  status: active
+  shot: /images/projects/france-ai.jpg
+  alt: france.ai asking what it can help with, above a question box and common queries
