@@ -54,7 +54,7 @@ pub struct App {
     pub theme: ThemeKind,
     /// True when the connecting key matched MINITEL_ADMIN_KEY.
     pub admin: bool,
-    /// Whatever name they used: ssh alice@3615.marlinski.org
+    /// Whatever name they used: ssh alice@marlinski.org
     pub user: String,
     pub compose: String,
     pub email: String,
@@ -367,7 +367,7 @@ impl App {
                     for (k, v) in [
                         ("web", "https://marlinski.org"),
                         ("code", "https://github.com/Marlinski"),
-                        ("ssh", "ssh 3615.marlinski.org"),
+                        ("ssh", "ssh -p 3615 marlinski.org"),
                     ] {
                         b.push(vec![
                             (format!("{k:<6}"), th.on(th.dim)),

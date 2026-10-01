@@ -142,7 +142,7 @@ impl FeedCache {
     pub fn new(url: String, ttl: Duration, metrics: Arc<crate::metrics::Metrics>) -> Self {
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(10))
-            .user_agent("3615.marlinski.org")
+            .user_agent("marlinski.org-minitel")
             .build()
             .expect("http client");
         FeedCache {
