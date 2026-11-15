@@ -9,6 +9,14 @@
 # width. For a CLI with nothing to screenshot, the preview is a rendered
 # terminal session (plan, wasmux) using real commands from its own README.
 
+- name: guitux
+  url: https://github.com/Marlinski/guitux
+  blurb: Local Guitar Pro player for practising. Slow it down, loop the hard bar, see the chord shape.
+  tags: [music, web, python]
+  status: active
+  shot: /images/projects/guitux.jpg
+  alt: guitux playing a tab, with the chord helper open
+
 - name: lwid
   url: https://lookwhatidid.xyz
   post: 2026-03-27-lwid-encrypted-static-app-hosting.md
