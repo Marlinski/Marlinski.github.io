@@ -17,6 +17,15 @@
   shot: /images/projects/guitux.jpg
   alt: guitux playing a tab, with the chord helper open
 
+- name: Tiny Nantes
+  url: https://tinynantes.fr
+  gh: https://github.com/Marlinski/tinynantes
+  blurb: Nantes redrawn in isometric pixel art, from IGN open data (LiDAR HD, BD ORTHO, BD TOPO) modeled in 3D then repainted tile by tile by an image model. Pan, zoom, address search; 8 viewing angles.
+  tags: [art, map, web]
+  status: active
+  shot: /images/projects/tinynantes.jpg
+  alt: Tiny Nantes, the isometric pixel-art map of Nantes
+
 - name: lwid
   url: https://lookwhatidid.xyz
   post: 2026-03-27-lwid-encrypted-static-app-hosting.md
